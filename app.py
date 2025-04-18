@@ -1,225 +1,340 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import mysql.connector
 from datetime import datetime
-from functools import wraps
-# Remove the pytz import
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Change this to a random secret key in production
 
-# MySQL Configuration
-db_config = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '',  # XAMPP's default MySQL password is empty
+app= Flask(__name__, template_folder="templates") #Defining the templates folder
+app.secret_key = 'your_secret_key_here'
+#MySQL Database Configuration (XAMPP)
+db_config= {
+    'host':'127.0.0.1',
+    'user' : 'root',
+    'password': '',
     'database': 'dms'
 }
 
-# Create database connection
+
+#Establising db connection
 def get_db_connection():
-    conn = mysql.connector.connect(**db_config)
-    return conn, conn.cursor(dictionary=True)
+    return mysql.connector.connect(**db_config)
 
-# Login required decorator
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'admin_id' not in session:
-            flash('Please login to access this page', 'error')
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-        
-    return decorated_function
-
-# Routes
 @app.route('/')
-def index():
-    return redirect(url_for('login'))
+def register():
+    return render_template('register.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+#Session setup
+@app.route('/set_session')
+def set_session():
+    #p_id = session.get('p_id')
+    session['p_id'] = 1
+    return 'Session set!'
+
+@app.route('/login')
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        
-        conn, cursor = get_db_connection()
-        cursor.execute('SELECT * FROM admin WHERE email = %s AND password = %s', (email, password))
-        admin = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        if admin:
-            session['admin_id'] = admin['id']
-            session['email'] = admin['email']
-            flash('Login successful!', 'success')
-            return redirect(url_for('admin_dashboard'))
-        else:
-            flash('Invalid email or password', 'error')
-    
     return render_template('login.html')
 
-@app.route('/admin')
-@login_required
-def admin_dashboard():
-    conn, cursor = get_db_connection()
-    
-    # Get pending doctor verifications
-    cursor.execute("SELECT COUNT(*) AS pending_count FROM doctor WHERE verified = 0")
-    pending_count = cursor.fetchone()['pending_count']
-    
-    # Get today's appointments
-    cursor.execute("SELECT COUNT(*) AS pending_app FROM appointment WHERE DATE(date) = CURDATE()")
-    pending_app = cursor.fetchone()['pending_app']
-    
-    # Get total doctors count
-    cursor.execute("SELECT COUNT(*) AS total_doctors FROM doctor")
-    total_doctors = cursor.fetchone()['total_doctors']
-    
-    # Get total patients count
-    cursor.execute("SELECT COUNT(*) AS total_patients FROM patient")
-    total_patients = cursor.fetchone()['total_patients']
-    
-    cursor.close()
-    conn.close()
-    
-    # Get current timestamp using only datetime (no pytz)
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    return render_template('admin.html', 
-                          email=session.get('email'),
-                          pending_count=pending_count,
-                          pending_app=pending_app,
-                          total_doctors=total_doctors,
-                          total_patients=total_patients,
-                          timestamp=timestamp)
+@app.route('/food_intake_checker')
+def food_intake_checker():
+    return render_template('food_intake_checker.html')
 
-# Rest of your routes remain the same...
-@app.route('/admin/doctors')
-@login_required
-def admin_doctors():
-    conn, cursor = get_db_connection()
-    cursor.execute("SELECT * FROM doctor")
-    doctors = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return render_template('addoc.html', doctors=doctors)
 
-@app.route('/admin/verify', methods=['GET', 'POST'])
-@login_required
-def admin_verify():
+@app.route('/patient_dashboard')
+def patient_dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    #if 'p_id' not in session:
+        #flash("Session timed out. Please login again.")
+        #return redirect(url_for('register'))  # Add your login route
+
+    p_id = 1 #########session['p_id'] 
+    cursor.execute("""
+        SELECT name, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on
+        FROM patient
+        WHERE p_id = %s
+    """, (p_id,))
+    patient = cursor.fetchone()
+
+    conn.close()
+
+    if not patient:
+        return "Patient not found", 404
+    
+    glucose_data = [
+        patient.get('gl_b_breakfast', 0),
+        patient.get('gl_a_breakfast', 0),
+        patient.get('gl_b_lunch', 0),
+        patient.get('gl_b_dinner', 0)
+    ]
+    return render_template(
+        'patient_dashboard.html',
+        name=patient['name'],
+        p_id=p_id,
+        updated_on=patient['updated_on'],
+        glucose_data=glucose_data
+    )
+
+    #return render_template(
+        #patient_dashboard.html', **patient, p_id=p_id)
+        #name=patient['name'],
+        #p_id=p_id,
+        #gl_b_breakfast=patient['gl_b_breakfast'],
+        #gl_a_breakfast=patient['gl_a_breakfast'],
+        #gl_b_lunch=patient['gl_b_lunch'],
+        #gl_b_dinner=patient['gl_b_dinner'],
+        #updated_on=patient['updated_on']
+    #)
+
+
+
+
+
+@app.route('/update_patient_profile', methods=['GET', 'POST'])
+def update_patient_profile():
+    #if 'p_id' not in session:
+        #flash("Session timed out. Please login again.")
+        #return redirect(url_for('register'))  # Add your login route
+
+    p_id = 1 #########session['p_id'] 
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch existing values
+    cursor.execute("""
+        SELECT name, dob, weight, gender,
+               gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner
+        FROM patient WHERE p_id = %s
+    """, (p_id,))
+    patient = cursor.fetchone()
+
+    if not patient:
+        flash("No data found for this patient.")
+        return redirect('/update_patient_profile')
+
     if request.method == 'POST':
-        d_id = request.form['d_id']
-        action = request.form['action']
-        
-        conn, cursor = get_db_connection()
-        
-        if action == 'Confirm':
-            cursor.execute("UPDATE doctor SET verified = 1 WHERE d_id = %s", (d_id,))
-            flash(f'Doctor ID {d_id} has been verified successfully!', 'success')
-        elif action == 'Cancel':
-            cursor.execute("UPDATE doctor SET verified = 2 WHERE d_id = %s", (d_id,))
-            flash(f'Doctor ID {d_id} verification has been cancelled.', 'warning')
-            
-        conn.commit()
+        # Form values
+        #name = request.form['name']
+        dob = request.form['dob']
+        weight = request.form['weight']
+        gender = request.form['gender']
+        gl_b_breakfast = request.form['gl_b_breakfast']
+        gl_a_breakfast = request.form['gl_a_breakfast']
+        gl_b_lunch = request.form['gl_b_lunch']
+        gl_b_dinner = request.form['gl_b_dinner']
+
+        # Determine if glucose values changed
+        values_changed = (
+            float(gl_b_breakfast) != float(patient['gl_b_breakfast']) or
+            float(gl_a_breakfast) != float(patient['gl_a_breakfast']) or
+            float(gl_b_lunch) != float(patient['gl_b_lunch']) or
+            float(gl_b_dinner) != float(patient['gl_b_dinner'])
+        )
+
+        updated_on = datetime.now() if values_changed else patient.get('updated_on')
+
+        # Update query
+        cursor.execute("""
+            UPDATE patient SET
+                dob = %s,
+                weight = %s,
+                gender = %s,
+                gl_b_breakfast = %s,
+                gl_a_breakfast = %s,
+                gl_b_lunch = %s,
+                gl_b_dinner = %s,
+                updated_on = %s
+            WHERE p_id = %s
+        """, (dob, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id))
+
+        conn.commit() #changes in DB will be saved
         cursor.close()
         conn.close()
-        
-        # Redirect to the same page with the fragment
-        return redirect(url_for('admin_verify', _anchor=f'doctor{d_id}'))
-    
-    conn, cursor = get_db_connection()
-    # Get all doctors, ordered by verification status (pending first)
-    cursor.execute("SELECT * FROM doctor ORDER BY verified ASC, d_id ASC")
-    doctors = cursor.fetchall()
-    
-    # Get count of pending verifications
-    cursor.execute("SELECT COUNT(*) AS pending_count FROM doctor WHERE verified = 0")
-    pending_count = cursor.fetchone()['pending_count']
-    
+
+        flash("Profile successfully updated!")
+        return redirect('/patient_dashboard')
     cursor.close()
     conn.close()
-    
-    return render_template('adverify.html', doctors=doctors, pending_count=pending_count)
+    return render_template('update_patient_profile.html', patient=patient)
 
-@app.route('/admin/appointments')
-@login_required
-def admin_appointments():
-    conn, cursor = get_db_connection()
-    # Join with doctor and patient tables to get names
+    #print("update_patient_profile")
+    #return render_template("update_patient_profile.html")
+
+
+
+@app.route('/verified_doctor_list')
+def verified_doctor_list():
+    #if 'p_id' not in session:
+        #flash("Session timed out. Please login again.")
+        #return redirect(url_for('register'))  # Add your login route
+    p_id=1 #remove this line while finalizing
+    #p_id = session['p_id']
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT a.*, d.name as doctor_name, p.name as patient_name 
-        FROM appointment a
-        JOIN doctor d ON a.d_id = d.d_id
-        JOIN patient p ON a.p_id = p.p_id
-        ORDER BY a.date DESC, a.time DESC
+        SELECT d_id, name, designation, location, email, phone 
+        FROM doctor 
+        WHERE verified = 1 AND designation IS NOT NULL 
+        AND location IS NOT NULL AND phone IS NOT NULL
     """)
-    appointments = cursor.fetchall()
-    cursor.close()
+    doctor = cursor.fetchall()
     conn.close()
     
-    return render_template('adappoin.html', appointments=appointments)
+    return render_template('verified_doctor_list.html', doctor=doctor)
 
-@app.route('/admin/patients')
-@login_required
-def admin_patients():
-    conn, cursor = get_db_connection()
-    cursor.execute("SELECT * FROM patient")
-    patients = cursor.fetchall()
-    cursor.close()
-    conn.close()
+
+@app.route('/my_prescription')
+def my_prescription():
+    #if 'p_id' not in session:
+        #flash("Session timed out. Please login again.")
+        #return redirect(url_for('register'))  # Add your login route
+    p_id=1 #remove this line while finalizing
+
+    #p_id = session['p_id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     
-    return render_template('adpatients.html', patients=patients)
-
-@app.route('/admin/prescriptions')
-@login_required
-def admin_prescriptions():
-    conn, cursor = get_db_connection()
-    # Join with doctor and patient tables to get names
-    cursor.execute("""
-        SELECT p.*, d.name as doctor_name, pt.name as patient_name 
-        FROM prescription p
-        JOIN doctor d ON p.d_id = d.d_id
-        JOIN patient pt ON p.p_id = pt.p_id
-        ORDER BY p.date DESC
-    """)
+    cursor.execute("SELECT pres_id, d_id, detail, date FROM prescription WHERE p_id = %s", (p_id,))
     prescriptions = cursor.fetchall()
+
+    # Fetch doctor names for each prescription
+    for prescription in prescriptions:
+        cursor.execute("SELECT name FROM doctor WHERE d_id = %s", (prescription['d_id'],))
+        doctor = cursor.fetchone()
+        prescription['doctor_name'] = doctor['name'] if doctor else 'Unknown Doctor'
+
     cursor.close()
     conn.close()
-    
-    return render_template('adprescriptions.html', prescriptions=prescriptions)
 
-@app.route('/admin/appointment/update', methods=['POST'])
-@login_required
-def update_appointment():
-    if request.method == 'POST':
-        app_id = request.form['app_id']
-        action = request.form['action']
-        
-        conn, cursor = get_db_connection()
-        
-        if action == 'Confirm':
-            cursor.execute("UPDATE appointment SET confirmation = 1 WHERE app_id = %s", (app_id,))
-            flash(f'Appointment ID {app_id} has been confirmed!', 'success')
-        elif action == 'Cancel':
-            cursor.execute("UPDATE appointment SET confirmation = 2 WHERE app_id = %s", (app_id,))
-            flash(f'Appointment ID {app_id} has been cancelled.', 'warning')
-        elif action == 'Mark Checked':
-            cursor.execute("UPDATE appointment SET checked = 1 WHERE app_id = %s", (app_id,))
-            flash(f'Appointment ID {app_id} has been marked as checked.', 'success')
-            
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return redirect(url_for('admin_appointments'))
+    return render_template('my_prescription.html', prescriptions=prescriptions)
+    
+
+@app.route('/my_appointment')
+def my_appointment():
+    #if 'p_id' not in session:
+        #flash("Session timed out. Please login again.")
+        #return redirect(url_for('register'))  # Add your login route
+    p_id=1 #remove this line while finalizing
+    #p_id = session['p_id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)    
+
+    #Fetching appointments
+    cursor.execute("SELECT app_id, d_id, date, time, confirmation, checked FROM appointment WHERE p_id = %s", (p_id,))
+    appointments = cursor.fetchall()
+
+    # Attaching doctor names
+    for appointment in appointments:
+        cursor.execute("SELECT name FROM doctor WHERE d_id = %s", (appointment['d_id'],))
+        doc = cursor.fetchone()
+        appointment['doctor_name'] = doc['name'] if doc else 'Unknown Doctor'
+
+    cursor.close()
+    conn.close()
+
+    return render_template('my_appointment.html', appointments=appointments)
 
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    flash('You have been logged out', 'info')
-    return redirect(url_for('login'))
+    print("logout Pg")
+    # Your logic for updating goes here
+    return render_template('logout.html')
+
+@app.route('/make_appointment')
+def make_appointment():
+    print("Make Appointment Pg")
+    # Your logic for updating goes here
+    return render_template('make_appointment.html')
+
+
+#food_intake_checker
+@app.route('/check_food')
+def check_food():
+    food_item = request.args.get('food_item')
+    gender = request.args.get('gender')
+    message = ""
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT Sugar_level FROM sugar_lvl WHERE Food = %s", (food_item,))
+    result = cursor.fetchone()
+
+    if result and gender:
+        sugar_level = result['Sugar_level']
+
+        if gender.lower() == 'male':
+            if sugar_level > 38:
+                message = f"{food_item} has {sugar_level}g sugar. Dangerous for male patients."
+            elif 17 <= sugar_level <= 37.99:
+                message = f"{food_item} has {sugar_level}g sugar. Moderately risky for male patients."
+            else:
+                message = f"{food_item} has {sugar_level}g sugar. Safe for male patients."
+        elif gender.lower() == 'female':
+            if sugar_level > 25:
+                message = f"{food_item} has {sugar_level}g sugar. Dangerous for female patients."
+            elif 12 <= sugar_level <= 24.99:
+                message = f"{food_item} has {sugar_level}g sugar. Moderately risky for female patients."
+            else:
+                message = f"{food_item} has {sugar_level}g sugar. Safe for female patients."
+        else:
+            message = "Invalid gender. Please specify male or female."
+    else:
+        message = f"No data found for '{food_item}'."
+
+    cursor.close()
+    conn.close()
+
+    return render_template('food_intake_checker.html', message=message)
+
+from flask import request, render_template
+import mysql.connector
+
+
+#SOS
+from flask import redirect, url_for
+
+@app.route('/fire_sos', methods=['POST'])
+def fire_sos():
+    data = request.get_json()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+
+    # Temporary mock until login session is active
+    p_id = 2 
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Get name from patient profile
+    cursor.execute("SELECT name FROM patient WHERE p_id = %s", (p_id,))
+    patient = cursor.fetchone()
+
+    if not patient:
+        cursor.close()
+        conn.close()
+        return "Patient not found", 404
+
+    name = patient['name']
+    location = f"{latitude},{longitude}"
+
+    # Store into sos_alerts table
+    cursor.execute("""
+        REPLACE INTO sos_alerts (p_id, name, location)
+        VALUES (%s, %s, %s)
+    """, (p_id, name, location))
+
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return '', 204  
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
