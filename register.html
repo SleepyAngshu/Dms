@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DMS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <header class="top-bar">
+	<div class="animated-slide"><b>Welcome to DMS</b></div>
+	<div class="contact">
+	  <button class="contact-btn" title="+919986786453"><b>📞 Contact</b></button>
+	  <div id="phoneDisplay" class="phone-display">+919986786453</div>
+	  <a href="login.html">
+		<button class="login-btn"><b>Login</b></button>
+	  </a>
+	</div>
+  </header>
+  
+
+  <section class="hero">
+    <img src="{{ url_for('static', filename='hospital.png') }}" alt="Hospital" class="hero-img">
+
+    <div class="login-box">
+		<div class="login-header">
+			<header>Diabetes Management and<br>
+				Appointment Booking System<br></header>
+		</div>
+		<form action="#" method="post"> <!-- Form action updated to "#" as PHP processing is removed -->
+			<div class="input-box">
+				<input class="input-field" type="text" name="username" placeholder="Enter your username" required><br>
+			</div>
+
+			<!-- Password field with show/hide functionality -->
+			<div class="input-box password-wrapper">
+				<input class="input-field" type="password" id="password" name="password" placeholder="Enter your password" required>
+				<i class="toggle-password" onclick="togglePassword()">👁️</i>
+			</div>
+
+			<div class="input-box">
+				<input class="input-field" type="email" name="email" placeholder="Enter your email" required><br>
+			</div>
+
+			<div class="dropdown-container">
+				<select name="user" id="user" required>
+					<option value="" disabled selected>Register As</option>
+					<option value="Doctor">Doctor</option>
+					<option value="Patient">Patient</option>
+				</select>
+			</div>
+
+			<div class="input-submit">
+				<input class="submit-btn" type="submit" value="Register">
+			</div>
+		</form>
+
+		<div class="sign-up-link">
+			Already have an account? <a href="login.html">Login</a> <!-- updated .php to .html -->
+		</div>
+	</div>
+
+	<script>
+		function togglePassword() {
+			const passwordField = document.getElementById("password");
+			const icon = document.querySelector(".toggle-password");
+			if (passwordField.type === "password") {
+				passwordField.type = "text";
+				icon.textContent = "🙈";
+			} else {
+				passwordField.type = "password";
+				icon.textContent = "👁️";
+			}
+		}
+	</script>
+  </section>
+
+</body>
+</html>
