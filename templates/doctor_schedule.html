@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Doctor's Weekly Schedule</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">Weekly Schedule</h2>
+
+        <form action="{{ url_for('update_doctor_schedule') }}" method="POST">
+            {% for day in days %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ day }}" class="form-label">{{ day }}</label>
+                    <select class="form-select" id="{{ day }}" name="{{ day }}">
+                        <option value="">-- Select Time Slot --</option>
+
+                        {% set saved_slot = schedule.get(day.lower()) %}  <!-- Get the saved slot for the day -->
+
+                        {% for hour in range(8, 20, 2) %}
+                            {% set start = "%02d:00"|format(hour) %}
+                            {% set end = "%02d:00"|format(hour + 2) %}
+                            {% set slot = start ~ " - " ~ end %}
+                            <option value="{{ slot }}" {% if saved_slot == slot %}selected{% endif %}>
+                                {{ slot }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Add Telemedicine Day Dropdown -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="telemedicine_day" class="form-label">Telemedicine Day</label>
+                    <select class="form-select" id="telemedicine_day" name="telemedicine_day">
+                        <option value="">-- Select a Telemedicine Day --</option>
+                        {% set telemedicine_day = schedule.get('telemedicine_day') %} <!-- Get the saved telemedicine day -->
+                        
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            <option value="{{ day }}" {% if telemedicine_day == day %}selected{% endif %}>
+                                {{ day }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Schedule</button>
+
+            <div class="mb-3 mt-5 text-center">
+                <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-secondary">Go Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

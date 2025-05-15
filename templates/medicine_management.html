@@ -1,0 +1,632 @@
+{% extends 'base.html' %}
+
+{% block title %}Medicine Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pharmacy-card {
+        background-color: #f7f9fc;
+        border-radius: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .pharmacy-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-color: #007bff;
+    }
+    
+    .medicine-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .medicine-item {
+        border-bottom: 1px solid #eee;
+        padding: 10px 0;
+    }
+    
+    .medicine-item:last-child {
+        border-bottom: none;
+    }
+    
+    .quantity-low {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .quantity-medium {
+        color: #ffc107;
+        font-weight: bold;
+    }
+    
+    .quantity-high {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .search-box {
+        margin-bottom: 20px;
+        background-color: #f7f9fc;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .card-footer {
+        background-color: rgba(0, 123, 255, 0.05);
+        border-top: 1px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Medicine Management</h1>
+    
+    <div class="search-box">
+        <div class="input-group">
+            <input type="text" id="searchPharmacy" class="form-control" placeholder="Search for pharmacy...">
+            <button class="btn btn-primary" type="button" id="btnSearchPharmacy">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+    </div>
+    
+    <div class="row" id="pharmacyCards">
+        <!-- Pharmacy cards will be loaded here -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medicine Modal -->
+<div class="modal fade" id="medicineModal" tabindex="-1" aria-labelledby="medicineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="medicineModalLabel">Medicines at <span id="pharmacyName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <input type="text" id="searchMedicine" class="form-control me-2" placeholder="Search medicines...">
+                    <button class="btn btn-primary" id="btnAddMedicine">
+                        <i class="bi bi-plus-circle"></i> Add Medicine
+                    </button>
+                </div>
+                
+                <div class="medicine-list" id="medicineList">
+                    <!-- Medicines will be loaded here -->
+                </div>
+                
+                <!-- Add Medicine Form (initially hidden) -->
+                <div id="addMedicineForm" style="display: none;">
+                    <hr>
+                    <h5>Add New Medicine</h5>
+                    <form id="newMedicineForm">
+                        <input type="hidden" id="pharmacyId" name="pharmacy_id">
+                        <div class="mb-3">
+                            <label for="medicineName" class="form-label">Medicine Name</label>
+                            <input type="text" class="form-control" id="medicineName" name="medicine_name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="0" value="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="price" class="form-label">Price (৳)</label>
+                                <input type="number" class="form-control" id="price" name="price" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expiryDate" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" id="expiryDate" name="expiry_date">
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" id="btnCancelAdd">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Medicine</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Medicine Modal -->
+<div class="modal fade" id="editMedicineModal" tabindex="-1" aria-labelledby="editMedicineModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMedicineModalLabel">Edit Medicine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMedicineForm">
+                    <input type="hidden" id="editMedicineId" name="medicine_id">
+                    <div class="mb-3">
+                        <label for="editMedicineName" class="form-label">Medicine Name</label>
+                        <input type="text" class="form-control" id="editMedicineName" name="medicine_name" readonly>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editQuantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="editQuantity" name="quantity" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPrice" class="form-label">Price (৳)</label>
+                            <input type="number" class="form-control" id="editPrice" name="price" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editExpiryDate" class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" id="editExpiryDate" name="expiry_date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" id="btnDeleteMedicine">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load all pharmacies when the page loads
+        loadPharmacies();
+        
+        // Set up event listeners
+        document.getElementById('btnSearchPharmacy').addEventListener('click', searchPharmacies);
+        document.getElementById('searchPharmacy').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                searchPharmacies();
+            }
+        });
+        
+        document.getElementById('btnAddMedicine').addEventListener('click', showAddMedicineForm);
+        document.getElementById('btnCancelAdd').addEventListener('click', hideAddMedicineForm);
+        document.getElementById('newMedicineForm').addEventListener('submit', addNewMedicine);
+        document.getElementById('searchMedicine').addEventListener('keyup', filterMedicines);
+        document.getElementById('btnSaveEdit').addEventListener('click', saveEditMedicine);
+        document.getElementById('btnDeleteMedicine').addEventListener('click', deleteMedicine);
+    });
+    
+    // Global variables
+    let allPharmacies = [];
+    let currentPharmacyId = null;
+    let allMedicines = [];
+    
+    function loadPharmacies() {
+        fetch('/admin/get-pharmacies')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                allPharmacies = data;
+                displayPharmacies(data);
+            })
+            .catch(error => {
+                console.error('Error loading pharmacies:', error);
+                document.getElementById('pharmacyCards').innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-danger">
+                            Error loading pharmacies. Please try again later.
+                        </div>
+                    </div>
+                `;
+            });
+    }
+    
+    function displayPharmacies(pharmacies) {
+        const container = document.getElementById('pharmacyCards');
+        
+        if (pharmacies.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        No pharmacies found.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        pharmacies.forEach(pharmacy => {
+            html += `
+                <div class="col-md-4 mb-4">
+                    <div class="card pharmacy-card h-100" onclick="loadMedicines(${pharmacy.id}, '${pharmacy.name}')">
+                        <div class="card-body">
+                            <h5 class="card-title">${pharmacy.name}</h5>
+                            <p class="card-text">${pharmacy.address || 'No address provided'}</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">Click to manage medicines</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function searchPharmacies() {
+        const searchTerm = document.getElementById('searchPharmacy').value.toLowerCase();
+        
+        if (!searchTerm) {
+            displayPharmacies(allPharmacies);
+            return;
+        }
+        
+        const filteredPharmacies = allPharmacies.filter(pharmacy => 
+            pharmacy.name.toLowerCase().includes(searchTerm) || 
+            (pharmacy.address && pharmacy.address.toLowerCase().includes(searchTerm))
+        );
+        
+        displayPharmacies(filteredPharmacies);
+    }
+    
+    function loadMedicines(pharmacyId, pharmacyName) {
+        currentPharmacyId = pharmacyId;
+        
+        // Set pharmacy name in modal
+        document.getElementById('pharmacyName').textContent = pharmacyName;
+        document.getElementById('pharmacyId').value = pharmacyId;
+        
+        // Show loading in medicine list
+        document.getElementById('medicineList').innerHTML = `
+            <div class="text-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        // Hide add medicine form
+        hideAddMedicineForm();
+        
+        // Show the modal
+        const medicineModal = new bootstrap.Modal(document.getElementById('medicineModal'));
+        medicineModal.show();
+        
+        // Fetch medicines for this pharmacy
+        fetch(`/admin/get-medicines/${pharmacyId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                allMedicines = data;
+                displayMedicines(data);
+            })
+            .catch(error => {
+                console.error('Error loading medicines:', error);
+                document.getElementById('medicineList').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading medicines. Please try again later.
+                    </div>
+                `;
+            });
+    }
+    
+    function displayMedicines(medicines) {
+        const container = document.getElementById('medicineList');
+        
+        if (medicines.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-4">
+                    <p>No medicines found for this pharmacy.</p>
+                    <p>Click "Add Medicine" to add some.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Expiry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        medicines.forEach(medicine => {
+            // Determine quantity class
+            let quantityClass = '';
+            if (medicine.quantity <= 10) {
+                quantityClass = 'quantity-low';
+            } else if (medicine.quantity <= 30) {
+                quantityClass = 'quantity-medium';
+            } else {
+                quantityClass = 'quantity-high';
+            }
+            
+            // Format expiry date
+            const expiryDate = medicine.expiry_date ? new Date(medicine.expiry_date).toLocaleDateString() : 'N/A';
+            
+            
+            const formattedPrice = medicine.price ? '৳' + parseFloat(medicine.price).toFixed(2) : 'N/A';
+            
+            html += `
+                <tr>
+                    <td>${medicine.medicine_name}</td>
+                    <td class="${quantityClass}">${medicine.quantity}</td>
+                    <td>${formattedPrice}</td>
+                    <td>${expiryDate}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editMedicine(${medicine.id})">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+    
+    function showAddMedicineForm() {
+        document.getElementById('addMedicineForm').style.display = 'block';
+        document.getElementById('btnAddMedicine').style.display = 'none';
+        document.getElementById('medicineName').focus();
+    }
+    
+    function hideAddMedicineForm() {
+        document.getElementById('addMedicineForm').style.display = 'none';
+        document.getElementById('btnAddMedicine').style.display = 'block';
+        document.getElementById('newMedicineForm').reset();
+    }
+    
+    function addNewMedicine(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(document.getElementById('newMedicineForm'));
+        const medicineData = Object.fromEntries(formData.entries());
+        
+        // Convert numeric fields
+        medicineData.pharmacy_id = parseInt(medicineData.pharmacy_id);
+        medicineData.quantity = parseInt(medicineData.quantity);
+        if (medicineData.price) medicineData.price = parseFloat(medicineData.price);
+        
+        fetch('/admin/add-medicine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(medicineData),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the form
+            hideAddMedicineForm();
+            
+            // Reload medicines
+            loadMedicines(currentPharmacyId, document.getElementById('pharmacyName').textContent);
+            
+            // Show success message using your flash message system
+            const flashContainer = document.querySelector('.flash-messages');
+            if (flashContainer) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    Medicine added successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                flashContainer.appendChild(alert);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            } else {
+                // Fallback to regular alert if flash container not found
+                alert('Medicine added successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding medicine:', error);
+            alert(error.message || 'Error adding medicine. Please try again.');
+        });
+    }
+    
+    function filterMedicines() {
+        const searchTerm = document.getElementById('searchMedicine').value.toLowerCase();
+        
+        if (!searchTerm) {
+            displayMedicines(allMedicines);
+            return;
+        }
+        
+        const filteredMedicines = allMedicines.filter(medicine => 
+            medicine.medicine_name.toLowerCase().includes(searchTerm)
+        );
+        
+        displayMedicines(filteredMedicines);
+    }
+    
+    function editMedicine(medicineId) {
+        const medicine = allMedicines.find(m => m.id === medicineId);
+        
+        if (!medicine) {
+            alert('Medicine not found!');
+            return;
+        }
+        
+        // Fill the edit form
+        document.getElementById('editMedicineId').value = medicine.id;
+        document.getElementById('editMedicineName').value = medicine.medicine_name;
+        document.getElementById('editQuantity').value = medicine.quantity;
+        document.getElementById('editPrice').value = medicine.price || '';
+        document.getElementById('editExpiryDate').value = medicine.expiry_date || '';
+        
+        // Show the edit modal
+        const editModal = new bootstrap.Modal(document.getElementById('editMedicineModal'));
+        editModal.show();
+    }
+    
+    function saveEditMedicine() {
+        const medicineId = document.getElementById('editMedicineId').value;
+        const quantity = parseInt(document.getElementById('editQuantity').value);
+        const price = document.getElementById('editPrice').value ? parseFloat(document.getElementById('editPrice').value) : null;
+        const expiryDate = document.getElementById('editExpiryDate').value || null;
+        
+        const medicineData = {
+            medicine_id: parseInt(medicineId),
+            quantity: quantity,
+            price: price,
+            expiry_date: expiryDate
+        };
+        
+        fetch('/admin/update-medicine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(medicineData),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editMedicineModal'));
+            editModal.hide();
+            
+            // Reload medicines
+            loadMedicines(currentPharmacyId, document.getElementById('pharmacyName').textContent);
+            
+            // Show success message
+            const flashContainer = document.querySelector('.flash-messages');
+            if (flashContainer) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    Medicine updated successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                flashContainer.appendChild(alert);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            } else {
+                // Fallback to regular alert if flash container not found
+                alert('Medicine updated successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating medicine:', error);
+            alert(error.message || 'Error updating medicine. Please try again.');
+        });
+    }
+    
+    function deleteMedicine() {
+        if (!confirm('Are you sure you want to delete this medicine?')) {
+            return;
+        }
+        
+        const medicineId = document.getElementById('editMedicineId').value;
+        
+        fetch('/admin/delete-medicine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ medicine_id: parseInt(medicineId) }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editMedicineModal'));
+            editModal.hide();
+            
+            // Reload medicines
+            loadMedicines(currentPharmacyId, document.getElementById('pharmacyName').textContent);
+            
+            // Show success message
+            const flashContainer = document.querySelector('.flash-messages');
+            if (flashContainer) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    Medicine deleted successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                flashContainer.appendChild(alert);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            } else {
+                // Fallback to regular alert if flash container not found
+                alert('Medicine deleted successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting medicine:', error);
+            alert(error.message || 'Error deleting medicine. Please try again.');
+        });
+    }
+    
+    // Make functions available globally
+    window.loadMedicines = loadMedicines;
+    window.editMedicine = editMedicine;
+</script>
+{% endblock %}

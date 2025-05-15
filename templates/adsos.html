@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}SOS Alerts{% endblock %}
+
+{% block content %}
+<h2>SOS Alerts</h2>
+
+<table class="table table-bordered bg-white">
+    <thead class="table-primary">
+        <tr>
+            <th>ID</th>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Timestamp</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="sos-alerts-table">
+        {% for alert in sos_alerts %}
+        <tr id="alert-row-{{ alert.p_id }}">
+            <td>{{ alert.p_id }}</td>
+            <td>{{ alert.patient_id }}</td> <!-- Assuming you have patient_id -->
+            <td>{{ alert.name }}</td>
+            <td>{{ alert.location }}</td>
+            <td>{{ alert.timestamp }}</td>
+            <td id="status-{{ alert.p_id }}">
+                {% if alert.responded == 1 %}
+                    <span class="badge bg-success">Responded</span>
+                {% else %}
+                    <span class="badge bg-danger">Not Responded</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if alert.responded == 0 %}
+                    <button 
+                        class="btn btn-warning respond-btn" 
+                        data-alert-id="{{ alert.p_id }}"
+                        onclick="respondToAlert('{{ alert.p_id }}')"
+                    >
+                        Respond Now
+                    </button>
+                {% else %}
+                    <button class="btn btn-success" disabled>Responded</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="text-center">No SOS alerts yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function respondToAlert(alertId) {
+    const button = document.querySelector(`button[data-alert-id="${alertId}"]`);
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+    fetch(`/respond_to_sos/${alertId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ alert_id: alertId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const statusCell = document.getElementById(`status-${alertId}`);
+            statusCell.innerHTML = '<span class="badge bg-success">Responded</span>';
+
+            button.className = 'btn btn-success';
+            button.innerHTML = 'Responded';
+            button.disabled = true;
+
+            setTimeout(() => {
+                const row = document.getElementById(`alert-row-${alertId}`);
+                row.style.transition = 'opacity 0.5s ease';
+                row.style.opacity = '0';
+                setTimeout(() => {
+                    row.remove();
+
+                    const tbody = document.getElementById('sos-alerts-table');
+                    if (tbody.children.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No SOS alerts yet.</td></tr>';
+                    }
+                }, 500);
+            }, 1000);
+        } else {
+            alert('Failed to update alert status: ' + data.message);
+            button.disabled = false;
+            button.innerHTML = 'Respond Now';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the alert status');
+        button.disabled = false;
+        button.innerHTML = 'Respond Now';
+    });
+}
+</script>
+{% endblock %}

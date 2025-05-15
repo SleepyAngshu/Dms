@@ -1,0 +1,84 @@
+<!--new code angshu for telemed payment-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Telemedicine Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .credit-card-form {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .credit-card-form h3 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="credit-card-form">
+        <h3>Pay ৳{{ amount }} to Confirm Telemedicine Appointment</h3>
+        <form method="POST" action="{{ url_for('telemedicine_payment') }}">
+            <div class="mb-3">
+                <label for="cardName" class="form-label">Name on Card</label>
+                <input type="text" class="form-control" id="cardName" name="cardName" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="cardNumber" class="form-label">Card Number</label>
+                <input type="text" class="form-control" id="cardNumber" name="cardNumber" maxlength="19" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="expiryDate" class="form-label">Expiry Date</label>
+                    <input type="text" class="form-control" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="cvv" class="form-label">CVV</label>
+                    <input type="text" class="form-control" id="cvv" name="cvv" maxlength="3" required>
+                </div>
+            </div>
+
+            <!-- Hidden fields -->
+            <input type="hidden" name="d_id" value="{{ d_id }}">
+            <input type="hidden" name="schedule" value="{{ schedule }}">
+            <!--<input type="hidden" name="amount" value="{{ amount }}">-->
+
+            <button type="submit" class="btn btn-primary w-100">Complete Payment & Book</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Format card number
+    document.getElementById('cardNumber').addEventListener('input', function (e) {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formatted = '';
+        for (let i = 0; i < val.length; i++) {
+            if (i > 0 && i % 4 === 0) formatted += ' ';
+            formatted += val[i];
+        }
+        e.target.value = formatted;
+    });
+
+    // Format expiry date
+    document.getElementById('expiryDate').addEventListener('input', function (e) {
+        let val = e.target.value.replace(/[^0-9]/gi, '');
+        if (val.length > 2) {
+            val = val.substring(0, 2) + '/' + val.substring(2, 4);
+        }
+        e.target.value = val;
+    });
+</script>
+
+</body>
+</html>

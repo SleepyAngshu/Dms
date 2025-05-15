@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Medicine</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='patient_dashboard.css') }}" rel="stylesheet">
+    <style>
+        .credit-card-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .card-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        .card-header-custom {
+            display: flex;
+            align-items: center;
+        }
+        .payment-icons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .payment-icons i {
+            font-size: 2rem;
+            color: #6c757d;
+        }
+        .payment-icons i.active {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+
+                    <!--new line-->
+                    
+
+                    <!--new line-->
+                    <li class="nav-item text-center mt-2">
+                        <a class="btn btn-danger rounded-pill px-4 py-2 sos-button" href="#" onclick="event.preventDefault(); triggerSOS()">
+                          <i class="bi bi-broadcast"></i> Fire SOS
+                        </a>
+                      </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                        <p class="space-between"></p>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('my_prescription') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('my_appointment') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
+                        <p class="space-between"></p>
+                    </li>
+                     <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('diet_suggestion') }}"><i class="bi bi-calendar-check-fill"></i> Diet Suggestion</a>
+                        <p class="space-between"></p>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('food_intake_checker') }}"><i class="bi bi-person-fill"></i> Food intake checker</a>
+                        <p class="space-between"></p>
+                    </li>
+
+		    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('my_reviews') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
+                        <p class="space-between"></p>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link active" href="{{ url_for('order_medicine') }}"><i class="bi bi-capsule"></i> Order Medicine</a>
+                        <p class="space-between"></p>
+                    </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <p class="space-between"></p>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- Main Content -->
+        <main class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Pharma Exio</h1>
+            </div>
+
+            <!-- Flash Message -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-success text-center" role="alert">
+                        {% for message in messages %}
+                            <p class="mb-0">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Medicine Search -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Search Medicines</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="medicine-search">Search Medicine:</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="medicine-search" placeholder="Type medicine name...">
+                                    <button class="btn btn-primary" type="button" onclick="searchMedicines()">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="medicine-results" class="mt-3">
+                                <!-- Search results will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Address -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Delivery Address</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="delivery-address">Enter your delivery address:</label>
+                                <textarea class="form-control" id="delivery-address" rows="3" placeholder="Enter your full delivery address"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Order Summary -->
+                    <div class="card sticky-top" style="top: 20px;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Your Order</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="order-items">
+                                <p id="empty-cart-message">Your cart is empty</p>
+                                <ul id="order-list" class="list-group mb-3" style="display: none;">
+                                    <!-- Order items will appear here -->
+                                </ul>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-3 pt-3 border-top">
+                                <h5>Total:</h5>
+                                <h5 id="order-total">৳0.00</h5>
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="mb-3">Payment Method:</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery" value="cash" checked>
+                                    <label class="form-check-label" for="cashOnDelivery">
+                                        <i class="bi bi-cash me-2"></i> Cash on Delivery
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="onlinePayment" value="online">
+                                    <label class="form-check-label" for="onlinePayment">
+                                        <i class="bi bi-credit-card me-2"></i> Online Payment
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button id="place-order-btn" class="btn btn-success w-100 mt-3" onclick="placeOrder()">
+                                <i class="bi bi-cart-check"></i> Place Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+ <!-- Card Payment -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Complete Your Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="credit-card-form">
+                    <div class="payment-icons">
+                        <i class="bi bi-credit-card-2-front active" id="visa-icon"></i>
+                        <i class="bi bi-credit-card-2-back" id="mastercard-icon"></i>
+                        <i class="bi bi-credit-card" id="amex-icon"></i>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cardName" class="form-label">Name on Card</label>
+                        <input type="text" class="form-control" id="cardName" placeholder="John Doe">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cardNumber" class="form-label">Card Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="expiryDate" class="form-label">Expiry Date</label>
+                            <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cvv" class="form-label">CVV</label>
+                            <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="billingAddress" class="form-label">Billing Address</label>
+                        <textarea class="form-control" id="billingAddress" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Total Amount: <span id="modal-total">৳0.00</span></h5>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="completePayment">Complete Payment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Store cart items
+    let cartItems = [];
+    let paymentModal;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        
+        // Format credit card number with spaces
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += ' ';
+                }
+                formattedValue += value[i];
+            }
+            e.target.value = formattedValue;
+        });
+        
+        // Format expiry date with slash
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/gi, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // Handle card type icons
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            const number = e.target.value.replace(/\s+/g, '');
+            const icons = document.querySelectorAll('.payment-icons i');
+            icons.forEach(icon => icon.classList.remove('active'));
+            
+            if (number.startsWith('4')) {
+                document.getElementById('visa-icon').classList.add('active');
+            } else if (number.startsWith('5')) {
+                document.getElementById('mastercard-icon').classList.add('active');
+            } else if (number.startsWith('3')) {
+                document.getElementById('amex-icon').classList.add('active');
+            } else if (number.length > 0) {
+                document.getElementById('visa-icon').classList.add('active');
+            }
+        });
+        
+        // Complete payment button
+        document.getElementById('completePayment').addEventListener('click', function() {
+            const cardName = document.getElementById('cardName').value.trim();
+            const cardNumber = document.getElementById('cardNumber').value.trim();
+            const expiryDate = document.getElementById('expiryDate').value.trim();
+            const cvv = document.getElementById('cvv').value.trim();
+            
+            if (!cardName || !cardNumber || !expiryDate || !cvv) {
+                alert('Please fill in all payment details');
+                return;
+            }
+            
+            // Hide modal
+            paymentModal.hide();
+            
+            // Generate and download CSV
+            generateAndDownloadCSV();
+            
+            // Process the order
+            processOrder();
+        });
+    });
+    
+    function searchMedicines() {
+        const searchTerm = document.getElementById('medicine-search').value.trim();
+        
+        if (!searchTerm) {
+            alert('Please enter a medicine name to search');
+            return;
+        }
+        
+        const resultsContainer = document.getElementById('medicine-results');
+        resultsContainer.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        // Make AJAX request to search medicines
+        fetch(`/search_medicines?term=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    resultsContainer.innerHTML = '<div class="alert alert-warning">No medicines found. Try a different search term.</div>';
+                    return;
+                }
+                
+                let html = '<div class="list-group">';
+                data.forEach(medicine => {
+                    html += `
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6>${medicine.medicine_name}</h6>
+                                    <small class="text-primary">Price: ৳${medicine.price.toFixed(2)}</small>
+                                </div>
+                                <div class="input-group" style="width: 150px;">
+                                    <input type="number" class="form-control" min="1" max="${medicine.quantity}" value="1" id="qty-${medicine.id}">
+                                    <button class="btn btn-outline-primary" type="button" 
+                                        onclick="addToCart(${medicine.id}, '${medicine.medicine_name}', ${medicine.price})">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                resultsContainer.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultsContainer.innerHTML = '<div class="alert alert-danger">Error searching medicines. Please try again.</div>';
+            });
+    }
+    
+    function addToCart(medicineId, medicineName, price) {
+        const quantityInput = document.getElementById(`qty-${medicineId}`);
+        const quantity = parseInt(quantityInput.value);
+        
+        if (isNaN(quantity) || quantity < 1) {
+            alert('Please enter a valid quantity');
+            return;
+        }
+        
+        // Check if item already in cart
+        const existingItemIndex = cartItems.findIndex(item => item.medicineId === medicineId);
+        
+        if (existingItemIndex !== -1) {
+            // Update quantity if already in cart
+            cartItems[existingItemIndex].quantity += quantity;
+        } else {
+            // Add new item to cart
+            cartItems.push({
+                medicineId,
+                medicineName,
+                price,
+                quantity
+            });
+        }
+        
+        // Update order summary
+        updateOrderSummary();
+        
+        // Show success message
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '5';
+        toastContainer.innerHTML = `
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Added to Cart</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Added ${quantity} ${medicineName} to your cart
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toastContainer);
+        
+        setTimeout(() => {
+            toastContainer.remove();
+        }, 3000);
+    }
+    
+    function updateOrderSummary() {
+        const orderList = document.getElementById('order-list');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        
+        if (cartItems.length === 0) {
+            orderList.style.display = 'none';
+            emptyCartMessage.style.display = 'block';
+            placeOrderBtn.disabled = true;
+            document.getElementById('order-total').textContent = '৳0.00';
+            return;
+        }
+        
+        // Hide empty cart message and show order list
+        emptyCartMessage.style.display = 'none';
+        orderList.style.display = 'block';
+        placeOrderBtn.disabled = false;
+        
+        // Generate order items HTML
+        let html = '';
+        let total = 0;
+        
+        cartItems.forEach((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            
+            html += `
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>${item.medicineName}</h6>
+                            <small class="text-muted">৳${item.price.toFixed(2)} x ${item.quantity}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold mb-1">৳${itemTotal.toFixed(2)}</div>
+                            <button class="btn btn-sm btn-danger" onclick="removeFromCart(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            `;
+        });
+        
+        orderList.innerHTML = html;
+        document.getElementById('order-total').textContent = `৳${total.toFixed(2)}`;
+    }
+    
+    function removeFromCart(index) {
+        cartItems.splice(index, 1);
+        updateOrderSummary();
+    }
+    
+    function placeOrder() {
+        if (cartItems.length === 0) {
+            alert('Your cart is empty');
+            return;
+        }
+        
+        const deliveryAddress = document.getElementById('delivery-address').value.trim();
+        if (!deliveryAddress) {
+            alert('Please enter your delivery address');
+            return;
+        }
+        
+        // Check payment method
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        
+        if (paymentMethod === 'online') {
+            // Show payment modal for online payment
+            document.getElementById('modal-total').textContent = document.getElementById('order-total').textContent;
+            paymentModal.show();
+            return;
+        }
+        
+        // For cash on delivery, process the order directly
+        processOrder();
+    }
+    
+    function processOrder() {
+        const deliveryAddress = document.getElementById('delivery-address').value.trim();
+        
+        // Prepare order data
+        const orderData = {
+            delivery_address: deliveryAddress,
+            items: cartItems.map(item => ({
+                medicine_name: item.medicineName,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+        
+        // Get selected payment method
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        orderData.payment_method = paymentMethod;
+        
+        // Show loading state
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        const originalBtnText = placeOrderBtn.innerHTML;
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        
+        // Submit order via AJAX
+        fetch('/place_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert('Your order has been placed successfully!');
+                
+                // Reset form
+                cartItems = [];
+                updateOrderSummary();
+                document.getElementById('delivery-address').value = '';
+                document.getElementById('medicine-search').value = '';
+                document.getElementById('medicine-results').innerHTML = '';
+                
+                // Reset button state
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = originalBtnText;
+            } else {
+                alert('Error placing order: ' + data.error);
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = originalBtnText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error placing order. Please try again.');
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.innerHTML = originalBtnText;
+        });
+    }
+    
+    function generateAndDownloadCSV() {
+        // Calculate total
+        let total = 0;
+        cartItems.forEach(item => {
+            total += item.price * item.quantity;
+        });
+        
+        // Create CSV content
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Order Receipt\r\n\r\n";
+        csvContent += "Date," + new Date().toLocaleDateString() + "\r\n";
+        csvContent += "Time," + new Date().toLocaleTimeString() + "\r\n\r\n";
+        csvContent += "Item,Quantity,Price,Total\r\n";
+        
+        cartItems.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            csvContent += `"${item.medicineName}",${item.quantity},৳${item.price.toFixed(2)},৳${itemTotal.toFixed(2)}\r\n`;
+        });
+        
+        csvContent += "\r\n";
+        csvContent += `Total,,৳${total.toFixed(2)}\r\n`;
+        csvContent += "\r\nThank you for your order!";
+        
+        // Create download link
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "order_receipt_" + new Date().getTime() + ".csv");
+        document.body.appendChild(link);
+        
+        // Download the CSV file
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+    }
+</script>
+</body>
+</html>

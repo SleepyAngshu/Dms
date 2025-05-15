@@ -1,0 +1,58 @@
+.content {
+    padding-left: 20px;
+}
+
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.container-fluid {
+    background: linear-gradient(to right, rgba(173, 216, 230, 0.5) 2%, rgba(255, 255, 255, 0.0) 98%);
+}
+
+.sidebar-sticky .nav-link {
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color: #8b99aa; /* #4d84c9;*/
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}
+.btn-purple {
+  color: #fff;
+  background-color: #6f42c1;  /* Bootstrap purple */
+  border-color: #643ab0;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: default;
+}
+
+.btn-purple:hover {
+  background-color: #5931a9;
+  border-color: #502d97;
+  color: #fff;
+}

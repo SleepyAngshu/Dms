@@ -1,0 +1,60 @@
+
+    .pharmacy-card {
+        background-color: #f7f9fc;
+        border-radius: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .pharmacy-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-color: #007bff;
+    }
+    
+    .medicine-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .medicine-item {
+        border-bottom: 1px solid #eee;
+        padding: 10px 0;
+    }
+    
+    .medicine-item:last-child {
+        border-bottom: none;
+    }
+    
+    .quantity-low {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .quantity-medium {
+        color: #ffc107;
+        font-weight: bold;
+    }
+    
+    .quantity-high {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .search-box {
+        margin-bottom: 20px;
+        background-color: #f7f9fc;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .card-footer {
+        background-color: rgba(0, 123, 255, 0.05);
+        border-top: 1px solid #e0e0e0;
+    }

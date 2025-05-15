@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='my_appointment.css') }}">
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <!--new line-->
+                    <li class="nav-item text-center mt-2">
+                        <a class="btn btn-danger rounded-pill px-4 py-2 sos-button" href="#" onclick="event.preventDefault(); triggerSOS()">
+                          <i class="bi bi-broadcast"></i> Fire SOS
+                        </a>
+                      </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                        <p class="space-between"></p>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('my_prescription') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link active" href="{{ url_for('my_appointment') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
+                        <p class="space-between"></p>
+                    </li>
+                     <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('diet_suggestion') }}"><i class="bi bi-calendar-check-fill"></i> Diet Suggestion</a>
+                        <p class="space-between"></p>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('food_intake_checker') }}"><i class="bi bi-person-fill"></i> Food intake checker</a>
+                        <p class="space-between"></p>
+                    </li>
+
+		    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('my_reviews') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
+                        <p class="space-between"></p>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('order_medicine') }}"><i class="bi bi-capsule"></i> Order Medicine</a>
+                        <p class="space-between"></p>
+                    </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <p class="space-between"></p>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                <h2 class="text-center mb-4">My Appointments</h2>
+                
+
+           
+
+            </div>
+
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Appointment ID</th>
+                        <th>Doctor Name</th>
+                        <th>Appointment Type</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th class="text-center">Confirmation Status</th>
+                        <th class="text-center">Checked</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if appointments %}
+                        {% for app in appointments %}
+                        <tr>
+                            <td>{{ app.app_id }}</td>
+                            <td>{{ app.doctor_name }}</td>
+                            <td>{{ app.appointment_type }}</td>
+                            <td>{{ app.date }}</td>
+                            <td>{{ app.time }}</td>
+                            <td class="text-center align-middle">
+                                {% if app.confirmation == 0 %}
+                                    <button class="btn btn-warning">Pending</button>
+                                {% elif app.confirmation == 1 %}
+                                    <button class="btn btn-success">Confirmed</button>
+                                {% elif app.confirmation == 3 %}
+                                    <button class="btn btn-purple">Rescheduled</button>
+                                {% else %}
+                                    <button class="btn btn-danger">Cancelled</button>
+                                {% endif %}
+                            </td>
+                            <td class="text-center align-middle">
+                                {% if app.checked == 0 %}
+                                    <button class="btn btn-danger" style="background-color: rgba(255, 0, 0, 0.2); color: black; width: 100px;">Not yet</button>
+                                {% else %}
+                                    <button class="btn btn-success" style="background-color: rgba(0, 255, 0, 0.3); color: black; width: 100px;">Yes</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="6" class="text-center">No appointments found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,751 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Locator{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .search-container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .pharmacy-list {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .pharmacy-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .pharmacy-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .pharmacy-item h5 {
+        margin: 0 0 5px 0;
+        color: #007bff;
+    }
+    
+    .pharmacy-item p {
+        margin: 0;
+        color: #6c757d;
+    }
+    
+    .distance {
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .btn-location {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .btn-location:hover {
+        background-color: #0069d9;
+        color: white;
+    }
+    
+    .btn-search {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .btn-search:hover {
+        background-color: #218838;
+        color: white;
+    }
+    
+    .btn-verify {
+        background-color: #17a2b8;
+        color: white;
+        margin-right: 10px;
+    }
+    
+    .btn-verify:hover {
+        background-color: #138496;
+        color: white;
+    }
+    
+    .action-buttons {
+        margin-bottom: 20px;
+    }
+    
+    /* Custom marker styles */
+    .current-location-marker {
+        background-color: blue;
+        border-radius: 50%;
+        border: 2px solid white;
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: -7px !important;
+        margin-top: -7px !important;
+    }
+    
+    .search-location-marker {
+        background-color: green;
+        border-radius: 50%;
+        border: 2px solid white;
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: -7px !important;
+        margin-top: -7px !important;
+    }
+    
+    /* Loading indicator */
+    .loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    /* Debug info */
+    .debug-info {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 1000;
+        max-width: 300px;
+        max-height: 200px;
+        overflow: auto;
+        display: none;
+    }
+</style>
+<!-- Include Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<h1>Pharmacy Locator</h1>
+
+<!-- <div class="action-buttons">
+    <button id="btnVerify" class="btn btn-verify">Verify Pharmacies</button>
+    <button id="btnCurrentLocation" class="btn btn-location">Use My Location</button>
+</div> -->
+
+<div class="search-container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="input-group mb-3">
+                <input type="text" id="searchAddress" class="form-control" placeholder="Enter an address or location">
+                <button class="btn btn-search" type="button" id="btnSearch"> Search</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group mb-3">
+                <span class="input-group-text">Radius (km)</span>
+                <input type="number" id="searchRadius" class="form-control" value="5" min="1" max="50">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div id="map" style="position: relative;">
+            <div id="loading" class="loading" style="display: none;">Searching...</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="pharmacy-list" id="pharmacyList">
+            <div class="text-center p-3">
+                <p>Use the search or your current location to find pharmacies nearby.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add debug button -->
+<!-- <div class="mt-3">
+    <button id="btnDebug" class="btn btn-secondary">Debug Coordinates</button>
+</div> -->
+
+<div id="debugInfo" class="debug-info"></div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<script>
+    let map;
+    let markers = [];
+    let currentLocationMarker;
+    let currentPosition = null;
+    let pharmacies = []; // Will be populated from the server
+    let debug = false; // Set to true to enable debug mode
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map first
+        initMap();
+        
+        // Then fetch pharmacies from the database
+        fetchPharmacies();
+        
+        // Add event listeners
+        document.getElementById('btnSearch').addEventListener('click', searchLocation);
+        
+        // Add debug button event listener
+        document.getElementById('btnDebug').addEventListener('click', debugCoordinates);
+        
+        // Enable debug mode with Ctrl+Shift+D
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                debug = !debug;
+                document.getElementById('debugInfo').style.display = debug ? 'block' : 'none';
+                logDebug('Debug mode ' + (debug ? 'enabled' : 'disabled'));
+            }
+        });
+    });
+    
+    function logDebug(message, data) {
+        if (debug) {
+            const debugElement = document.getElementById('debugInfo');
+            if (data) {
+                debugElement.innerHTML += `<div>${message}: ${JSON.stringify(data)}</div>`;
+            } else {
+                debugElement.innerHTML += `<div>${message}</div>`;
+            }
+            console.log(message, data);
+        }
+    }
+    
+    function initMap() {
+        // Default center on Dhaka, Bangladesh
+        const defaultCenter = [23.8103, 90.4125];
+        
+        // Initialize the map
+        map = L.map('map').setView(defaultCenter, 12);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    }
+    
+    // NEW FUNCTION: Validate and fix coordinates
+    function validateAndFixCoordinates(pharmacy) {
+        // Create a copy of the pharmacy object to avoid modifying the original
+        const fixedPharmacy = { ...pharmacy };
+
+        // 1. Parse coordinates to ensure they're numbers
+        let lat = parseFloat(String(pharmacy.latitude).replace(",", "."));
+        let lng = parseFloat(String(pharmacy.longitude).replace(",", "."));
+
+        // 2. Check if coordinates are valid
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid coordinates for pharmacy ${pharmacy.id}: ${pharmacy.latitude}, ${pharmacy.longitude}`);
+            return null; // Skip this pharmacy
+        }
+
+        // 3. Check if coordinates are in valid range
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            console.warn(`Coordinates out of range for pharmacy ${pharmacy.id}: ${lat}, ${lng}`);
+
+            // 4. Check if coordinates might be swapped
+            if (lng >= -90 && lng <= 90 && lat >= -180 && lat <= 180) {
+                console.log(`Swapping coordinates for pharmacy ${pharmacy.id}`);
+                // Swap coordinates
+                [lat, lng] = [lng, lat];
+            } else {
+                return null; // Skip this pharmacy if coordinates can't be fixed
+            }
+        }
+
+        // 5. Check specifically for Bangladesh coordinates (roughly)
+        // Bangladesh is approximately between 20-27°N latitude and 88-93°E longitude
+        const isInBangladeshRange = lat >= 20 && lat <= 27 && lng >= 88 && lng <= 93;
+
+        // If coordinates are not in Bangladesh range, they might be swapped
+        if (!isInBangladeshRange) {
+            // Check if swapping would put them in Bangladesh
+            if (lng >= 20 && lng <= 27 && lat >= 88 && lat <= 93) {
+                console.log(`Coordinates appear to be swapped for pharmacy ${pharmacy.id}, fixing...`);
+                // Swap coordinates
+                [lat, lng] = [lng, lat];
+            } else {
+                console.warn(`Pharmacy ${pharmacy.id} coordinates are outside Bangladesh range: ${lat}, ${lng}`);
+                // We'll still use these coordinates, but with a warning
+            }
+        }
+
+        // Update the pharmacy object with fixed coordinates
+        fixedPharmacy.latitude = lat;
+        fixedPharmacy.longitude = lng;
+
+        return fixedPharmacy;
+    }
+    
+    // MODIFIED: fetchPharmacies function to validate coordinates
+    function fetchPharmacies() {
+        // Show loading indicator
+        document.getElementById('loading').style.display = 'block';
+        
+        // Fetch pharmacies from the server
+        fetch('/admin/get-pharmacies')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                // Log the raw data for debugging
+                console.log('Raw pharmacy data:', data);
+                
+                // Validate and fix coordinates
+                const validPharmacies = [];
+                data.forEach(pharmacy => {
+                    const fixedPharmacy = validateAndFixCoordinates(pharmacy);
+                    if (fixedPharmacy) {
+                        validPharmacies.push(fixedPharmacy);
+                    }
+                });
+                
+                console.log('Fixed pharmacy data:', validPharmacies);
+                
+                // Store the pharmacies
+                pharmacies = validPharmacies;
+                
+                // Show all pharmacies on the map
+                showAllPharmacies();
+            })
+            .catch(error => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                console.error('Error fetching pharmacies:', error);
+                alert('Error loading pharmacies. Please try again later.');
+            });
+    }
+    
+    // MODIFIED: addMarker function to double-check coordinates
+    function addMarker(pharmacy) {
+        // Check if latitude and longitude are valid
+        const lat = parseFloat(pharmacy.latitude);
+        const lng = parseFloat(pharmacy.longitude);
+        
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid coordinates for pharmacy ${pharmacy.id}: ${pharmacy.latitude}, ${pharmacy.longitude}`);
+            return;
+        }
+        
+        console.log(`Adding marker for pharmacy ${pharmacy.id} at ${lat}, ${lng}`);
+        
+        // Create a marker for the pharmacy
+        const marker = L.marker([lat, lng]).addTo(map);
+        
+        // Create popup content
+        const popupContent = `
+            <div>
+                <h5>${pharmacy.name}</h5>
+                <p>${pharmacy.address}</p>
+                ${pharmacy.distance ? `<p>Distance: ${pharmacy.distance.toFixed(2)} km</p>` : ''}
+            </div>
+        `;
+        
+        // Bind popup to marker
+        marker.bindPopup(popupContent);
+        
+        // Store the pharmacy ID with the marker for reference
+        marker.pharmacyId = pharmacy.id;
+        
+        // Add to markers array
+        markers.push(marker);
+    }
+    
+    // MODIFIED: showAllPharmacies function to center the map on Bangladesh if no valid markers
+    function showAllPharmacies() {
+        clearMarkers();
+        
+        if (pharmacies.length === 0) {
+            logDebug('No pharmacies to show');
+            return;
+        }
+        
+        logDebug(`Showing ${pharmacies.length} pharmacies`);
+        
+        pharmacies.forEach(pharmacy => {
+            addMarker(pharmacy);
+        });
+        
+        // Update the pharmacy list
+        updatePharmacyList(pharmacies);
+        
+        // Fit map to show all markers or center on Bangladesh
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds());
+        } else {
+            // Center on Dhaka, Bangladesh as fallback
+            map.setView([23.8103, 90.4125], 12);
+        }
+    }
+    
+    function clearMarkers() {
+        // Remove all markers from the map
+        markers.forEach(marker => {
+            map.removeLayer(marker);
+        });
+        
+        // Clear the markers array
+        markers = [];
+    }
+    
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    logDebug('Got current location', pos);
+                    
+                    currentPosition = pos;
+                    
+                    // Clear previous current location marker
+                    if (currentLocationMarker) {
+                        map.removeLayer(currentLocationMarker);
+                    }
+                    
+                    // Create a custom icon for current location
+                    const blueIcon = L.divIcon({
+                        className: 'current-location-marker'
+                    });
+                    
+                    // Add marker for current location
+                    currentLocationMarker = L.marker([pos.lat, pos.lng], {
+                        icon: blueIcon
+                    }).addTo(map);
+                    
+                    currentLocationMarker.bindPopup("Your Location").openPopup();
+                    
+                    // Center map on current location
+                    map.setView([pos.lat, pos.lng], 13);
+                    
+                    // Find nearby pharmacies
+                    findNearbyPharmacies(pos.lat, pos.lng);
+                    
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                },
+                (error) => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    console.error("Geolocation error:", error);
+                    alert("Error: The Geolocation service failed. Please enable location services in your browser.");
+                }
+            );
+        } else {
+            alert("Error: Your browser doesn't support geolocation.");
+        }
+    }
+    
+    function searchLocation() {
+        const address = document.getElementById('searchAddress').value;
+        
+        if (!address) {
+            alert("Please enter an address to search.");
+            return;
+        }
+        
+        // Show loading indicator
+        document.getElementById('loading').style.display = 'block';
+        
+        // Use Nominatim for geocoding (OpenStreetMap's geocoding service)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data && data.length > 0) {
+                    const location = data[0];
+                    const pos = {
+                        lat: parseFloat(location.lat),
+                        lng: parseFloat(location.lon)
+                    };
+                    
+                    logDebug('Search location result', pos);
+                    
+                    currentPosition = pos;
+                    
+                    // Clear previous current location marker
+                    if (currentLocationMarker) {
+                        map.removeLayer(currentLocationMarker);
+                    }
+                    
+                    // Create a custom icon for search location
+                    const greenIcon = L.divIcon({
+                        className: 'search-location-marker'
+                    });
+                    
+                    // Add marker for searched location
+                    currentLocationMarker = L.marker([pos.lat, pos.lng], {
+                        icon: greenIcon
+                    }).addTo(map);
+                    
+                    currentLocationMarker.bindPopup("Searched Location").openPopup();
+                    
+                    // Center map on searched location
+                    map.setView([pos.lat, pos.lng], 13);
+                    
+                    // Find nearby pharmacies
+                    findNearbyPharmacies(pos.lat, pos.lng);
+                } else {
+                    alert("Location not found. Please try a different address.");
+                }
+            })
+            .catch(error => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                console.error("Error searching for location:", error);
+                alert("Error searching for location. Please try again.");
+            });
+    }
+    
+    function findNearbyPharmacies(lat, lng) {
+        const radius = parseFloat(document.getElementById('searchRadius').value) || 5; // Default 5km
+        
+        logDebug(`Finding pharmacies within ${radius}km of ${lat}, ${lng}`);
+        
+        // Clear previous markers
+        clearMarkers();
+        
+        // Filter pharmacies by distance
+        const nearbyPharmacies = pharmacies.filter(pharmacy => {
+            const pharmacyLat = parseFloat(pharmacy.latitude);
+            const pharmacyLng = parseFloat(pharmacy.longitude);
+            
+            if (isNaN(pharmacyLat) || isNaN(pharmacyLng)) {
+                return false;
+            }
+            
+            const distance = calculateDistance(lat, lng, pharmacyLat, pharmacyLng);
+            pharmacy.distance = distance; // Add distance property
+            return distance <= radius;
+        });
+        
+        logDebug(`Found ${nearbyPharmacies.length} pharmacies within radius`);
+        
+        // Sort by distance
+        nearbyPharmacies.sort((a, b) => a.distance - b.distance);
+        
+        // Add markers for nearby pharmacies
+        nearbyPharmacies.forEach(pharmacy => {
+            addMarker(pharmacy);
+        });
+        
+        // Update pharmacy list
+        updatePharmacyList(nearbyPharmacies);
+    }
+    
+    function updatePharmacyList(pharmacies) {
+        const listContainer = document.getElementById('pharmacyList');
+        
+        if (pharmacies.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <p>No pharmacies found within the selected radius.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        pharmacies.forEach(pharmacy => {
+            html += `
+                <div class="pharmacy-item" onclick="selectPharmacy(${pharmacy.id})">
+                    <h5>${pharmacy.name}</h5>
+                    <p>${pharmacy.address}</p>
+                    ${pharmacy.distance ? `<p class="distance">${pharmacy.distance.toFixed(2)} km away</p>` : ''}
+                </div>
+            `;
+        });
+        
+        listContainer.innerHTML = html;
+    }
+    
+    function selectPharmacy(id) {
+        logDebug(`Selecting pharmacy with ID: ${id}`);
+        
+        const pharmacy = pharmacies.find(p => parseInt(p.id) === parseInt(id));
+        
+        if (pharmacy) {
+            logDebug('Found pharmacy', pharmacy);
+            
+            const lat = parseFloat(pharmacy.latitude);
+            const lng = parseFloat(pharmacy.longitude);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                logDebug('Invalid coordinates');
+                return;
+            }
+            
+            // Center map on pharmacy
+            map.setView([lat, lng], 15);
+            
+            // Find the marker and open popup
+            for (let i = 0; i < markers.length; i++) {
+                const marker = markers[i];
+                if (parseInt(marker.pharmacyId) === parseInt(id)) {
+                    marker.openPopup();
+                    break;
+                }
+            }
+        } else {
+            logDebug(`Pharmacy with ID ${id} not found`);
+        }
+    }
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula to calculate distance between two points
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        const distance = R * c; // Distance in km
+        return distance;
+    }
+    
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+    
+    // NEW FUNCTION: Debug coordinates
+    function debugCoordinates() {
+        // Create a debug overlay
+        const debugDiv = document.createElement('div');
+        debugDiv.style.position = 'fixed';
+        debugDiv.style.top = '10px';
+        debugDiv.style.right = '10px';
+        debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        debugDiv.style.color = 'white';
+        debugDiv.style.padding = '10px';
+        debugDiv.style.borderRadius = '5px';
+        debugDiv.style.maxWidth = '400px';
+        debugDiv.style.maxHeight = '80vh';
+        debugDiv.style.overflow = 'auto';
+        debugDiv.style.zIndex = '1000';
+
+        // Add a close button
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'Close';
+        closeButton.className = 'btn btn-sm btn-light mb-3';
+        closeButton.addEventListener('click', () => {
+            document.body.removeChild(debugDiv);
+        });
+        debugDiv.appendChild(closeButton);
+
+        // Add test location buttons
+        const testButtonsDiv = document.createElement('div');
+        testButtonsDiv.className = 'mb-3';
+        
+        // Button for Dhaka center
+        const dhakaButton = document.createElement('button');
+        dhakaButton.textContent = 'Test Dhaka Center';
+        dhakaButton.className = 'btn btn-sm btn-info me-2 mb-2';
+        dhakaButton.addEventListener('click', () => {
+            testLocation(23.8103, 90.4125);
+        });
+        testButtonsDiv.appendChild(dhakaButton);
+        
+        debugDiv.appendChild(testButtonsDiv);
+
+        // Add pharmacy coordinates
+        const coordsList = document.createElement('div');
+
+        if (pharmacies.length === 0) {
+            coordsList.innerHTML = '<p>No pharmacies loaded</p>';
+        } else {
+            let html = '<h5>Pharmacy Coordinates</h5>';
+
+            pharmacies.forEach(pharmacy => {
+                html += `
+                    <div style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                        <strong>${pharmacy.name}</strong><br>
+                        ID: ${pharmacy.id}<br>
+                        Lat: ${pharmacy.latitude}<br>
+                        Lng: ${pharmacy.longitude}<br>
+                        Address: ${pharmacy.address}
+                    </div>
+                `;
+            });
+
+            coordsList.innerHTML = html;
+        }
+
+        debugDiv.appendChild(coordsList);
+
+        // Add to the document
+        document.body.appendChild(debugDiv);
+    }
+    
+    // NEW FUNCTION: Test a specific location
+    function testLocation(lat, lng) {
+        // Clear previous current location marker
+        if (currentLocationMarker) {
+            map.removeLayer(currentLocationMarker);
+        }
+
+        // Add marker for test location
+        currentLocationMarker = L.marker([lat, lng]).addTo(map);
+        currentLocationMarker.bindPopup("Test Location").openPopup();
+
+        // Center map on test location
+        map.setView([lat, lng], 13);
+
+        // Find nearby pharmacies
+        findNearbyPharmacies(lat, lng);
+    }
+    
+    // Make functions globally available
+    window.selectPharmacy = selectPharmacy;
+    window.testLocation = testLocation;
+</script>
+{% endblock %}

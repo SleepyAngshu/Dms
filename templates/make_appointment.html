@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Appointment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='make_appointment.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card"> 
+		    <h2 class="text-center">Request An Appointment</h2>
+        
+            
+            <form action="{{ url_for('make_appointment_process') }}" method="POST">
+                <input type="hidden" name="d_id" value="{{ d_id }}">
+                <input type="hidden" name="p_id" value="{{ p_id }}">
+            
+                <!-- Appointment Type -->
+                <div class="mb-4 left-align">
+                    <label for="appointment_type" class="form-label">Appointment Type</label>
+                    <select class="form-control" id="appointment_type" name="appointment_type" required>
+                        <option value="" selected disabled>-- Select Type --</option>
+                        <option value="in-person">In-Person</option>
+                        <option value="telemedicine">Telemedicine</option>
+                    </select>
+                </div>
+            
+                <!-- Appointment Schedule -->
+                <div class="mb-4 left-align" id="schedule_container" style="display: none;">
+                    <label for="day" class="form-label">Appointment Schedule</label>
+                    <select class="form-control" id="day" name="date" required>
+                        <option value="" selected disabled>-- Select Schedule --</option>
+                        <!-- Options will be populated via JS -->
+                    </select>
+                    {% if error.get('day') %}
+                        <div class="error">{{ error['day'] }}</div>
+                    {% endif %}
+                </div>
+            
+                <!-- Multiple Appointment on same day error -->
+                <div class="mb-3 left-align">
+                    {% if error.get('appointment') %}
+                        <div class="error">{{ error['appointment'] }}</div>
+                    {% endif %}
+                </div>
+            
+                <!-- Request Appointment Button -->
+                <div class="btn-container">
+                    <button type="submit" class="btn {{ 'btn-success' if is_profile_complete else 'btn-secondary' }}" 
+                            {% if not is_profile_complete %}disabled{% endif %}>
+                        Request
+                    </button>
+                </div>
+            
+                <!-- Profile Incomplete Message -->
+                {% if not is_profile_complete %}
+                    <div class="alert alert-warning mt-3" role="alert">
+                        Please complete your profile to request an appointment.
+                    </div>
+                {% endif %}
+            </form>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const appointmentTypeSelect = document.getElementById('appointment_type');
+        const scheduleContainer = document.getElementById('schedule_container');
+        const daySelect = document.getElementById('day');
+    
+        const availableInPerson = {{ upcoming_days | tojson }};
+        const telemedicineDay = {{ upcoming_telemedicine_day | tojson }};
+        const TELE_TIME = "20:00 - 22:00";
+    
+        appointmentTypeSelect.addEventListener('change', function () {
+            const selectedType = this.value;
+            daySelect.innerHTML = '<option value="" selected disabled>-- Select Schedule --</option>';
+            scheduleContainer.style.display = 'block';
+    
+            if (selectedType === "in-person") {
+                availableInPerson.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.date;
+                    option.text = `${item.formatted} [${item.day}] Time: ${item.time}`;
+                    daySelect.appendChild(option);
+                });
+            } else if (selectedType === "telemedicine") {
+                telemedicineDay.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.date;
+                    option.text = `${item.formatted} [${item.day}] Time: ${TELE_TIME}`;
+                    daySelect.appendChild(option);
+                });
+            }
+        });
+    </script>
+    <!--new code angshu to handle redirection when telemed is chosen in apnt type-->
+    <script>
+        const appointmentTypeSelect = document.getElementById("appointment_type");
+    
+        appointmentTypeSelect.addEventListener('change', function () {
+            const selectedType = appointmentTypeSelect.value;
+            const daySelect = document.getElementById("date");
+    
+            daySelect.innerHTML = ""; // clear options
+    
+            if (selectedType === "telemedicine") {
+                telemedicineDay.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.date;
+                    option.text = `${item.formatted} [${item.day}] Time: ${TELE_TIME}`;
+                    daySelect.appendChild(option);
+                });
+            } else {
+                availableInPerson.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.date;
+                    option.text = `${item.formatted} [${item.day}]`;
+                    daySelect.appendChild(option);
+                });
+            }
+        });
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const typeSelect = document.querySelector('select[name="appointment_type"]');
+    
+            form.addEventListener('submit', function (e) {
+                const selectedType = typeSelect.value;
+                const schedule = form.querySelector('select[name="date"]').value;
+    
+                if (selectedType === "telemedicine" && !schedule) {
+                    e.preventDefault();
+                    alert("Please select a schedule.");
+                }
+            });
+        });
+    </script>
+    
+    
+    
+    
+    
+</body>
+</html>
