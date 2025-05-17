@@ -1,7 +1,7 @@
 from db import get_db_connection
 from datetime import datetime
 
-def add_review(p_id, d_id, rating, comment):
+def add_review(p_id, d_id, rating, comment):       #######  ADITYA ########
     """Add a new review from a patient to a doctor"""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -65,7 +65,7 @@ def add_review(p_id, d_id, rating, comment):
         cursor.close()
         conn.close()
 
-def get_doctor_reviews(d_id):
+def get_doctor_reviews(d_id):          #######  ADITYA ########
     """Get all reviews for a specific doctor"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -103,7 +103,7 @@ def get_doctor_reviews(d_id):
         cursor.close()
         conn.close()
 
-def get_patient_reviews(p_id):
+def get_patient_reviews(p_id):          #######  ADITYA ########
     """Get all reviews submitted by a specific patient"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -125,7 +125,7 @@ def get_patient_reviews(p_id):
         cursor.close()
         conn.close()
 
-def delete_review(review_id, p_id):
+def delete_review(review_id, p_id):        #######  ADITYA ########
     """Delete a review (only if it belongs to the patient)"""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -156,7 +156,7 @@ def delete_review(review_id, p_id):
         cursor.close()
         conn.close()
 
-def get_reviewable_doctors(p_id):
+def get_reviewable_doctors(p_id):          #######  ADITYA ########
     """Get list of doctors the patient has had appointments with"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
