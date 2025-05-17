@@ -1,9 +1,9 @@
-#from utils.db import get_connection
+
 from db import get_db_connection
 from datetime import datetime
 
 
-def get_dashboard_stats():
+def get_dashboard_stats():      ###########  ADITYA #########
     """Get statistics for admin dashboard"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -34,7 +34,7 @@ def get_dashboard_stats():
     
     return stats
 
-def get_all_doctors():
+def get_all_doctors():    ###########  ADITYA #########
     """Get all doctors"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -46,7 +46,7 @@ def get_all_doctors():
         cursor.close()
         conn.close()
 
-def get_all_doctors_for_verification():
+def get_all_doctors_for_verification():  ###########  ADITYA #########
     """Get all doctors for verification, ordered by verification status"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -66,7 +66,7 @@ def get_all_doctors_for_verification():
     
     return result
 
-def update_doctor_verification(d_id, action):
+def update_doctor_verification(d_id, action):  ###########  ADITYA #########
     """Update doctor verification status"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -90,7 +90,7 @@ def update_doctor_verification(d_id, action):
     
     return result
 
-def get_all_orders():
+def get_all_orders():  ###########  ADITYA #########
     """Get all orders with their items"""
     print("Starting get_all_orders function")
     try:
@@ -186,7 +186,7 @@ def get_all_orders():
         print(traceback.format_exc())
         return []
 
-def update_order_status(order_id, status):
+def update_order_status(order_id, status):     ###########  ADITYA #########
     """Update order status"""
     try:
         conn = get_db_connection()
@@ -212,7 +212,7 @@ def update_order_status(order_id, status):
         return {"success": False, "message": f"Error: {str(e)}"}
     
 
-#nahian m4
+################# NAHIAN  m4 ###########################
 def insert_notice(sender_id, recipient_type, recipient_id, message, date):
     connection = get_db_connection()
     cursor = connection.cursor()
