@@ -1,6 +1,7 @@
+########  ADITYA #####################
 from db import get_db_connection
 
-def get_medicines_by_pharmacy(pharmacy_id):
+def get_medicines_by_pharmacy(pharmacy_id):   ########  ADITYA #####################
     """Get all medicines for a specific pharmacy"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -35,7 +36,7 @@ def get_medicines_by_pharmacy(pharmacy_id):
         cursor.close()
         conn.close()
 
-def add_medicine(data):
+def add_medicine(data):        ########  ADITYA #####################
     """Add a new medicine"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -85,7 +86,7 @@ def add_medicine(data):
     
     return result
 
-def update_medicine(data):
+def update_medicine(data):       ########  ADITYA #####################
     """Update an existing medicine"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -120,7 +121,7 @@ def update_medicine(data):
     
     return result
 
-def delete_medicine(medicine_id):
+def delete_medicine(medicine_id):         ########  ADITYA #####################
     """Delete a medicine"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
