@@ -1,6 +1,6 @@
 from db import get_db_connection
 
-def get_all_pharmacies():
+def get_all_pharmacies():           #######  ADITYA ########
     """Get all pharmacies"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -23,7 +23,7 @@ def get_all_pharmacies():
         cursor.close()
         conn.close()
 
-def get_nearby_pharmacies(lat, lng, radius=5):
+def get_nearby_pharmacies(lat, lng, radius=5):           #######  ADITYA ########
     """Get pharmacies within a certain radius using Haversine formula"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
