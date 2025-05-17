@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 
-def search_medicines_by_name(search_term):
+def search_medicines_by_name(search_term):      ########  ADITYA #####################
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -41,7 +41,7 @@ def search_medicines_by_name(search_term):
         conn.close()
     
 
-def create_order(p_id, items, delivery_address, data={}):
+def create_order(p_id, items, delivery_address, data={}):         ########  ADITYA #####################
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -77,7 +77,7 @@ def create_order(p_id, items, delivery_address, data={}):
         cursor.close()
         conn.close()
 
-def get_patient_orders(p_id):
+def get_patient_orders(p_id):           ########  ADITYA #####################
     """Get all orders for a patient"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
