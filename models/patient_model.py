@@ -1,7 +1,7 @@
 from db import get_db_connection
 
 
-def get_patient_name_glucose_info_update(p_id):
+def get_patient_name_glucose_info_update(p_id):      ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
@@ -16,7 +16,7 @@ def get_patient_name_glucose_info_update(p_id):
 
 
 
-def get_patient_details(p_id):
+def get_patient_details(p_id):          ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
@@ -30,7 +30,7 @@ def get_patient_details(p_id):
 
 
 
-def update_patient_details(dob, phone, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id):
+def update_patient_details(dob, phone, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id):    ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
@@ -53,7 +53,7 @@ def update_patient_details(dob, phone, weight, gender, gl_b_breakfast, gl_a_brea
     conn.close()
     
 
-def get_verified_doctor_details():
+def get_verified_doctor_details():       ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
@@ -69,7 +69,7 @@ def get_verified_doctor_details():
 
     return doctor
 
-def filter_doctor_by_area(area):
+def filter_doctor_by_area(area):     ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql="SELECT * FROM doctor WHERE area = %s"
@@ -81,7 +81,7 @@ def filter_doctor_by_area(area):
 
     return doctor
 
-def get_distinct_area():
+def get_distinct_area():         ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql="SELECT DISTINCT area FROM doctor WHERE area IS NOT NULL"
@@ -99,7 +99,7 @@ def get_distinct_area():
 
 
 
-def get_patient_prescription(p_id):
+def get_patient_prescription(p_id):           ####### NAHIAN  ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= "SELECT pres_id, d_id, detail, date, morning, afternoon, night FROM prescription WHERE p_id = %s"
@@ -109,7 +109,7 @@ def get_patient_prescription(p_id):
 
 
 # Fetch doctor names for each prescription
-def get_doctor_name_for_each_prescription(prescription):
+def get_doctor_name_for_each_prescription(prescription):          ####### NAHIAN ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= "SELECT name FROM doctor WHERE d_id = %s"
@@ -124,7 +124,7 @@ def get_doctor_name_for_each_prescription(prescription):
     
 
 
-def get_appointment_details(p_id):
+def get_appointment_details(p_id):       ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql=  "SELECT app_id, d_id, appointment_type, date, time, confirmation, checked FROM appointment WHERE p_id = %s"
@@ -139,7 +139,7 @@ def get_appointment_details(p_id):
 
 
 # Fetching doctor name for each appointment
-def get_doctor_name_for_each_appointment(appointment):
+def get_doctor_name_for_each_appointment(appointment):        ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= "SELECT name FROM doctor WHERE d_id = %s"
@@ -150,7 +150,7 @@ def get_doctor_name_for_each_appointment(appointment):
     conn.close()
     return doc
 
-def get_patient_required_fields(p_id):
+def get_patient_required_fields(p_id):          ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
@@ -167,7 +167,7 @@ def get_patient_required_fields(p_id):
     conn.close()
     return required_fields
 
-def get_doctor_schedule(d_id):
+def get_doctor_schedule(d_id):          ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql = """
@@ -192,7 +192,7 @@ def get_doctor_schedule(d_id):
     conn.close()
     return appointment_exist is not None'''
 #new code angshu
-def check_existing_appointment(p_id, date):
+def check_existing_appointment(p_id, date): ####### ANGSHU   ###########
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = "SELECT * FROM appointment WHERE p_id = %s AND date = %s"
@@ -204,7 +204,7 @@ def check_existing_appointment(p_id, date):
     return appointment_exist is not None
 
 
-def get_column_value(d_id, day):
+def get_column_value(d_id, day                ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = f"SELECT `{day}` FROM doctor_schedule WHERE d_id = %s"
@@ -216,8 +216,8 @@ def get_column_value(d_id, day):
     return column_value[0] if column_value else None
     
 
-
-def insert_appointment(d_id, p_id, date, time, appointment_type):
+ 
+def insert_appointment(d_id, p_id, date, time, appointment_type):     ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = "INSERT INTO appointment (d_id, p_id, date, time, appointment_type) VALUES (%s, %s, %s, %s, %s)"
@@ -240,7 +240,7 @@ def insert_appointment(d_id, p_id, date, time, appointment_type):
 #     conn.close()
 
 #new code angshu   
-def insert_sos_alert(p_id, name, latitude, longitude):
+def insert_sos_alert(p_id, name, latitude, longitude):      ####### ANGSHU ###########
     location = f"{latitude},{longitude}"
     
     conn = get_db_connection()
@@ -269,7 +269,7 @@ def insert_sos_alert(p_id, name, latitude, longitude):
 
 
 #new code angshu
-def is_duplicate_telemedicine(p_id, date, time):
+def is_duplicate_telemedicine(p_id, date, time):   ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql = "SELECT * FROM appointment WHERE p_id = %s AND date = %s AND time = %s AND appointment_type = %s"
@@ -284,7 +284,7 @@ def is_duplicate_telemedicine(p_id, date, time):
 
 # Fetch active notifications for a patient
 # Fetch active notifications for a patient
-def get_patient_notifications(p_id):
+def get_patient_notifications(p_id):        ####### NAHIAN ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -300,7 +300,7 @@ def get_patient_notifications(p_id):
     return notifications
 
 # Dismiss a notification
-def dismiss_patient_notification(notif_id):
+def dismiss_patient_notification(notif_id):     ####### NAHIAN ###########
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -311,7 +311,7 @@ def dismiss_patient_notification(notif_id):
     conn.commit()
     cursor.close()
     conn.close()
-def create_notification_for_appointment_action(app_id, action):
+def create_notification_for_appointment_action(app_id, action):    ####### NAHIAN ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
@@ -348,7 +348,7 @@ def create_notification_for_appointment_action(app_id, action):
 #new code angshu
 from datetime import datetime
 
-def get_time_based_medication_reminder(p_id):
+def get_time_based_medication_reminder(p_id):    ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -388,7 +388,7 @@ def get_time_based_medication_reminder(p_id):
 
     return display
 
-def get_food_sugar_level(food_item):
+def get_food_sugar_level(food_item):    ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT Sugar_level FROM sugar_lvl WHERE Food = %s", (food_item,))
@@ -398,7 +398,7 @@ def get_food_sugar_level(food_item):
     return result['Sugar_level'] if result else None
 
 
-def get_diet_plan_by_age_and_gender(age, gender):
+def get_diet_plan_by_age_and_gender(age, gender):   ####### AFIA ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     # Determine which age range this falls under
@@ -434,7 +434,7 @@ def get_diet_plan_by_age_and_gender(age, gender):
 
 
 #nahian m4
-def get_patient_notices(p_id):
+def get_patient_notices(p_id):      ####### NAHIAN ###########
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
 
