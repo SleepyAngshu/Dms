@@ -1,7 +1,7 @@
 # models/doctor_model.py
 from db import get_db_connection
 
-def get_doctor_by_id(d_id):
+def get_doctor_by_id(d_id):           ###########  AFIA ##############
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM doctor WHERE d_id = %s", (d_id,))
@@ -10,7 +10,7 @@ def get_doctor_by_id(d_id):
     conn.close()
     return doctor
 
-def update_doctor_profile(d_id, designation, phone, location):
+def update_doctor_profile(d_id, designation, phone, location):    ########## NAHIAN #############
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -21,7 +21,7 @@ def update_doctor_profile(d_id, designation, phone, location):
     cursor.close()
     conn.close()
 
-def get_doctor_name(d_id):
+def get_doctor_name(d_id):           ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT name FROM doctor WHERE d_id = %s", (d_id,))
@@ -31,7 +31,7 @@ def get_doctor_name(d_id):
     return result['name'] if result else None
 
 
-def get_doctor_schedule(d_id):
+def get_doctor_schedule(d_id):       ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM doctor_schedule WHERE d_id = %s", (d_id,))
@@ -40,7 +40,7 @@ def get_doctor_schedule(d_id):
     conn.close()
     return schedule
 
-def update_doctor_schedule(d_id, schedule, telemedicine_days):
+def update_doctor_schedule(d_id, schedule, telemedicine_days):  ######### NAHIAN & ANGSHU ############
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -55,7 +55,7 @@ def update_doctor_schedule(d_id, schedule, telemedicine_days):
     cursor.close()
     conn.close()
 
-def get_pending_appointments(d_id):
+def get_pending_appointments(d_id):         ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     query = '''
@@ -73,7 +73,7 @@ def get_pending_appointments(d_id):
     
     return appointments
 
-def update_appointment_status(app_id, d_id, action):
+def update_appointment_status(app_id, d_id, action):       ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor()
     action_map = {
@@ -93,7 +93,7 @@ def update_appointment_status(app_id, d_id, action):
     conn.close()
 
 
-def insert_prescription(p_id, d_id, detail, date, morning, afternoon, night):
+def insert_prescription(p_id, d_id, detail, date, morning, afternoon, night):  ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -105,7 +105,7 @@ def insert_prescription(p_id, d_id, detail, date, morning, afternoon, night):
     conn.close()
 
 
-def check_patient_appointment(p_id, d_id):
+def check_patient_appointment(p_id, d_id):      ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor(buffered=True)
     query = """
