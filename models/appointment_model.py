@@ -1,7 +1,7 @@
-#from utils.db import get_connection
+
 from db import get_db_connection
 
-def get_all_appointments():
+def get_all_appointments():      ########  AFIA #######
     """Get all appointments with doctor and patient names"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -46,7 +46,7 @@ def get_all_appointments():
     
 #     return result
 
-def get_all_prescriptions():
+def get_all_prescriptions():      ########  AFIA #######
     """Get all prescriptions with doctor and patient names"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
