@@ -1,6 +1,6 @@
 from db import get_db_connection
 
-def get_all_sos_alerts():
+def get_all_sos_alerts():          #######  ANGSHU########
     """Get all SOS alerts"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -13,7 +13,7 @@ def get_all_sos_alerts():
         conn.close()
 
 
-def update_sos_alert_status(alert_id, responded=1):
+def update_sos_alert_status(alert_id, responded=1):      #######  ANGSHU########
     """Update the responded status of an SOS alert"""
     conn = get_db_connection()
     cursor = conn.cursor()
