@@ -54,7 +54,7 @@ def get_db_connection():
 
 
 #####################################################################3
-def get_upcoming_week_days(available_days):
+def get_upcoming_week_days(available_days):    ##############  AFIA ##########
     today = datetime.today()
     result = []
 
@@ -70,7 +70,7 @@ def get_upcoming_week_days(available_days):
             })
     print("result:", result)
     return result
-def get_day(date):
+def get_day(date):            ##############  AFIA ##########
     date_string = str(date)  
     date_object = datetime.strptime(date_string, '%Y-%m-%d')  #convert to datetime
     day_name = date_object.strftime('%A')  #gets the full day name
@@ -79,7 +79,7 @@ def get_day(date):
 
 
 # Authentication decorator
-def login_required(f):
+def login_required(f):      
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -95,7 +95,7 @@ def index():
 
 
 
-############ ADI ############
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -163,8 +163,8 @@ def login():
         flash('Invalid email, password, or role selection', 'error')
     
     return render_template('login.html')
+############ ADITYA PART ENDS #############
 
-#######################
 #Session setup
 
 # @app.route('/patient_dashboard', endpoint= 'patient_dashboard') ##removed for angshu
@@ -202,7 +202,7 @@ def login():
 
 
 @app.route('/patient_dashboard', endpoint='patient_dashboard')
-def patient_dashboard():
+def patient_dashboard():          ############## AFIA ###################
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
@@ -244,8 +244,8 @@ def dismiss_notification(notif_id):
 
 
 
-@app.route('/update_patient_profile', methods=['GET', 'POST'])
-def update_patient_profile():
+@app.route('/update_patient_profile', methods=['GET', 'POST'])      ########### AFIA ###################
+def update_patient_profile():       ##############  AFIA ##########
     p_id= session['user_id']
    
     if 'user_id' not in session:
@@ -291,7 +291,7 @@ def update_patient_profile():
             return redirect('/patient_dashboard')
     
     return render_template('update_patient_profile.html', patient=patient) 
-
+################### AFIA PATIENT ENDS ###########################
 
 ################################   DOC REVIEW ########################
 
@@ -315,7 +315,7 @@ def update_patient_profile():
 #     distinct_area_lst = get_distinct_area()
 #     return render_template('verified_doctor_list.html', doctor=doctor, areas=distinct_area_lst)  
 
-# Modified verified_doctor_list to correctly handle review data structure
+######################################### ADITYA ########################
 @app.route('/verified_doctor_list')
 def verified_doctor_list():
     p_id = session['user_id']
@@ -344,9 +344,9 @@ def verified_doctor_list():
     distinct_area_lst = get_distinct_area()
     return render_template('verified_doctor_list.html', doctor=doctor, areas=distinct_area_lst)
 
-######################  DOC REVIEW ENDS ##########################
+###################### ADITYA  DOC REVIEW ENDS ##########################
 @app.route('/my_prescription')
-def my_prescription():
+def my_prescription():         ##################### NAHIAN ########################
 
     p_id= session['user_id']
  
@@ -366,7 +366,7 @@ def my_prescription():
     
 
 @app.route('/my_appointment')
-def my_appointment():
+def my_appointment():       ################## AFIA ###########################
     p_id= session['user_id']
     
     if 'user_id' not in session:
@@ -385,7 +385,7 @@ def my_appointment():
 
 
 @app.route('/make_appointment')
-def make_appointment():
+def make_appointment():        #################### AFIA ######################
     d_id = request.args.get('d_id')
     p_id= session['user_id']
    
@@ -461,7 +461,7 @@ def make_appointment():
 
     
 
-#new code angshu
+###################### ANGSHU ########################
 @app.route('/make_appointment_process', methods=['POST'])
 def make_appointment_process():
     if 'user_id' not in session:
@@ -500,7 +500,7 @@ def make_appointment_process():
 
 
 @app.route('/fire_sos', methods=['POST'])
-def fire_sos():
+def fire_sos():  ######################## ANGSHU ##########################
     p_id= session['user_id']
     
     if 'user_id' not in session:
@@ -551,11 +551,11 @@ def food_intake_checker():
             message = "❌ Food item not found in database."
 
     return render_template("food_intake_checker.html", message=message)
+################### ANHGSU  ENDS ############################
 
+############  ADMIN   #####################
 
-############  ADI Admin   ###################
-
-@app.route('/admin')
+@app.route('/admin')       #ADITYA
 @login_required
 def admin_dashboard():
     stats = get_dashboard_stats()
@@ -569,19 +569,19 @@ def admin_dashboard():
 
 @app.route('/admin/doctors')
 @login_required
-def admin_doctors():
+def admin_doctors():  #ADITYA
     doctors = get_all_doctors()
     return render_template('addoc.html', doctors=doctors)
 
 @app.route('/admin/sos')
 @login_required
-def admin_sos():
+def admin_sos():  ###############################  ANGSHU ###########################
     sos_alerts = get_all_sos_alerts()
     return render_template('adsos.html', sos_alerts=sos_alerts)
 
 @app.route('/admin/verify', methods=['GET', 'POST'])
 @login_required
-def admin_verify():
+def admin_verify():    ## ADITYA 
     if request.method == 'POST':
         d_id = request.form['d_id']
         action = request.form['action']
@@ -603,13 +603,13 @@ def admin_verify():
 
 @app.route('/admin/appointments')
 @login_required
-def admin_appointments():
+def admin_appointments():   #### ADITYA 
     appointments = get_all_appointments()
     return render_template('addapoin.html', appointments=appointments)
 
 @app.route('/admin/prescriptions')
 @login_required
-def admin_prescriptions():
+def admin_prescriptions():  #### ADITYA 
     prescriptions = get_all_prescriptions()
     return render_template('adprescriptions.html', prescriptions=prescriptions)
 
@@ -632,18 +632,18 @@ def admin_prescriptions():
 # Pharmacy routes
 @app.route('/admin/pharmacy-locator')
 @login_required
-def branch_locator():
+def branch_locator():        ### ADITYA 
     return render_template('pharmacy_locator.html')
 
 @app.route('/admin/get-pharmacies', methods=['GET'])
 @login_required
-def get_pharmacies():
+def get_pharmacies():     ###  ADITYA 
     pharmacies = get_all_pharmacies()
     return jsonify(pharmacies)
 
 @app.route('/admin/nearby-pharmacies', methods=['POST'])
 @login_required
-def nearby_pharmacies():
+def nearby_pharmacies():  #### ADITYA 
     data = request.json
     lat = data.get('lat')
     lng = data.get('lng')
@@ -658,12 +658,12 @@ def nearby_pharmacies():
 # Medicine routes
 @app.route('/admin/medicine-management')
 @login_required
-def medicine_management():
+def medicine_management():     ####### ADITYA 
     return render_template('medicine_management.html')
 
 @app.route('/admin/get-medicines/<int:pharmacy_id>')
 @login_required
-def get_medicines(pharmacy_id):
+def get_medicines(pharmacy_id): #####  ADITYA 
     medicines = get_medicines_by_pharmacy(pharmacy_id)
     
     if 'error' in medicines:
@@ -673,7 +673,7 @@ def get_medicines(pharmacy_id):
 
 @app.route('/admin/add-medicine', methods=['POST'])
 @login_required
-def add_medicine_route():
+def add_medicine_route():     ### ADITYA 
     data = request.json
     
     # Validate required fields
@@ -689,7 +689,7 @@ def add_medicine_route():
 
 @app.route('/admin/update-medicine', methods=['POST'])
 @login_required
-def update_medicine_route():
+def update_medicine_route():  #######  ADITYA 
     data = request.json
     
     # Validate required fields
@@ -705,7 +705,7 @@ def update_medicine_route():
 
 @app.route('/admin/delete-medicine', methods=['POST'])
 @login_required
-def delete_medicine_route():
+def delete_medicine_route():  ####  ADITYA 
     data = request.json
     
     # Validate required fields
@@ -726,7 +726,7 @@ def delete_medicine_route():
 def order_medicine():
     return render_template('order_medicine.html')
 
-# Adi integrated - Search medicines API
+# Adi integrated - Search medicines 
 @app.route('/search_medicines')
 def search_medicines_route():
     search_term = request.args.get('term', '')   
@@ -735,7 +735,7 @@ def search_medicines_route():
     
     return jsonify(medicines)
 
-# Adi integrated - Place order API
+# Adi integrated - Place order
 @app.route('/place_order', methods=['POST'])
 def place_order():
     if 'user_id' not in session:
@@ -758,7 +758,7 @@ def place_order():
         'payment_method': data.get('payment_method', 'cash')
     }
     
-    # Create the order - removed pharmacy_id parameter
+    
     result = create_order(p_id, items, delivery_address, additional_data)
     
     return jsonify(result)
@@ -799,7 +799,7 @@ def write_review():
             flash(result['message'], "error")
             return redirect(url_for('write_review'))
     
-    # GET request - show form
+    
     reviewable_doctors = get_reviewable_doctors(p_id)
     return render_template('write_review.html', doctors=reviewable_doctors)
 
@@ -879,9 +879,9 @@ def admin_orders():
             print("Orders is not a list, converting to empty list")
             orders = []
         
-        # Process each order to ensure all attributes are safe to use in the template
+        
         for order in orders:
-            # Ensure items is a list
+            
             if not isinstance(order.get('items'), list):
                 order['items'] = []
             
@@ -927,7 +927,7 @@ def update_order():
 
 
 
-######################  ADIOS FROM ADI :) ###########################
+######################   ADI ENDS  ###########################
 
 
 
@@ -1077,7 +1077,7 @@ def doctor_prescriptions():
     return render_template('doctor_prescriptions.html')
 
 
-#new code angshu for telemed flow
+###################   ANGSHU TELEMEDICINE ########################
 @app.route('/telemedicine_payment', methods=['GET', 'POST'])
 def telemedicine_payment():
     amount = 1000.00  # define this once at the top
@@ -1108,7 +1108,7 @@ def telemedicine_payment():
     return render_template("telemedicine_payment.html", d_id=d_id, schedule=schedule, amount=amount)
 
 
-def extract_nutrient_percentages(plan):
+def extract_nutrient_percentages(plan):    ############  NAHIAN #############
     nutrients = {
         'Carbohydrates': 0,
         'Proteins': 0,
@@ -1126,12 +1126,12 @@ def extract_nutrient_percentages(plan):
 
 
 
-def calculate_age(dob):
+def calculate_age(dob):      ############# NAHIAN 
     today = date.today()
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 @app.route('/diet_suggestion')
-def diet_suggestion():
+def diet_suggestion():           ######### NAHIAN 
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
@@ -1163,7 +1163,7 @@ def diet_suggestion():
 
 #nahian m4
 @app.route('/admin_send_notice', methods=['GET', 'POST'])
-def admin_send_notice():
+def admin_send_notice():                       ######### NAHIAN 
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
