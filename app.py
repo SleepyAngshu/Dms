@@ -368,7 +368,7 @@ def my_prescription():         ##################### NAHIAN ####################
     
 
 @app.route('/my_appointment')
-def my_appointment():       ################## AFIA ###########################
+def my_appointment():       ################## NAHIAN ###########################
     p_id= session['user_id']
     
     if 'user_id' not in session:
