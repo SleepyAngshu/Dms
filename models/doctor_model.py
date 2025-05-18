@@ -40,7 +40,7 @@ def get_doctor_schedule(d_id):       ######### NAHIAN ############
     conn.close()
     return schedule
 
-def update_doctor_schedule(d_id, schedule, telemedicine_days):  ######### NAHIAN & ANGSHU ############
+def update_doctor_schedule(d_id, schedule, telemedicine_days):  ######### NAHIAN ############
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
