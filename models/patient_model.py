@@ -284,7 +284,7 @@ def is_duplicate_telemedicine(p_id, date, time):   ####### ANGSHU ###########
 
 # Fetch active notifications for a patient
 # Fetch active notifications for a patient
-def get_patient_notifications(p_id):        ####### NAHIAN ###########
+def get_patient_notifications(p_id):        ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -300,7 +300,7 @@ def get_patient_notifications(p_id):        ####### NAHIAN ###########
     return notifications
 
 # Dismiss a notification
-def dismiss_patient_notification(notif_id):     ####### NAHIAN ###########
+def dismiss_patient_notification(notif_id):     ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -311,7 +311,7 @@ def dismiss_patient_notification(notif_id):     ####### NAHIAN ###########
     conn.commit()
     cursor.close()
     conn.close()
-def create_notification_for_appointment_action(app_id, action):    ####### NAHIAN ###########
+def create_notification_for_appointment_action(app_id, action):    ####### ANGSHU ###########
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
