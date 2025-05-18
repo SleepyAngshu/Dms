@@ -64,7 +64,7 @@ def get_all_prescriptions():      ########  AFIA #######
         cursor.close()
         conn.close()
 
-#new code angshu
+#ANGSHU
 
 def insert_telemedicine_payment(p_id, d_id, schedule, amount):
     conn = get_db_connection()
