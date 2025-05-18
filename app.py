@@ -220,8 +220,8 @@ def patient_dashboard():          ############## AFIA ###################
         patient.get('gl_b_dinner', 0)
     ]
     
-    notices = get_patient_notices(p_id)  # ✅ Fetch notices for this patient - nahian m4
-    notifications = get_patient_notifications(p_id)  # 🆕 fetch notifications angshu for doctor appointment confirm/cancel/reschedule
+    notices = get_patient_notices(p_id)  # ✅ Fetch notices for this patient - NAHIAN m4
+    notifications = get_patient_notifications(p_id)  # 🆕 fetch notifications ANGSHU for doctor appointment confirm/cancel/reschedule
     # 🆕 Medication reminder message angshu for reminder
     medication_message = get_time_based_medication_reminder(p_id)
 
@@ -236,6 +236,8 @@ def patient_dashboard():          ############## AFIA ###################
     #     notices=notices)  # Pass to view
     return render_template('patient_dashboard.html', name=patient['name'], p_id=p_id, updated_on=patient['updated_on'], glucose_data=glucose_data, notifications=notifications, medication_message=medication_message, notices=notices)
 
+
+#ANGSHU
 @app.route('/dismiss_notification/<int:notif_id>', methods=['POST'])
 def dismiss_notification(notif_id):
     dismiss_patient_notification(notif_id)
@@ -385,7 +387,7 @@ def my_appointment():       ################## AFIA ###########################
 
 
 @app.route('/make_appointment')
-def make_appointment():        #################### AFIA ######################
+def make_appointment():        #################### AFIA???? ######################
     d_id = request.args.get('d_id')
     p_id= session['user_id']
    
@@ -461,7 +463,7 @@ def make_appointment():        #################### AFIA ######################
 
     
 
-###################### ANGSHU ########################
+###################### ANGSHU and NAHIAN ########################
 @app.route('/make_appointment_process', methods=['POST'])
 def make_appointment_process():
     if 'user_id' not in session:
@@ -522,6 +524,7 @@ def fire_sos():  ######################## ANGSHU ##########################
 
 
 #FOOD INTAKE CHECKER
+#ANGSHU
 @app.route('/food_intake_checker',methods=['GET', 'POST'])
 def food_intake_checker():
     food_item = request.args.get('food_item')
@@ -1126,12 +1129,12 @@ def extract_nutrient_percentages(plan):    ############  NAHIAN #############
 
 
 
-def calculate_age(dob):      ############# NAHIAN 
+def calculate_age(dob):      ############# AFIA
     today = date.today()
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 @app.route('/diet_suggestion')
-def diet_suggestion():           ######### NAHIAN 
+def diet_suggestion():           ######### AFIA 
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
