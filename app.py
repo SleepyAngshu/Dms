@@ -387,7 +387,7 @@ def my_appointment():       ################## NAHIAN ##########################
 
 
 @app.route('/make_appointment')
-def make_appointment():        #################### AFIA???? ######################
+def make_appointment():        #################### NAHIAN ######################
     d_id = request.args.get('d_id')
     p_id= session['user_id']
    
@@ -554,7 +554,7 @@ def food_intake_checker():
             message = "❌ Food item not found in database."
 
     return render_template("food_intake_checker.html", message=message)
-################### ANHGSU  ENDS ############################
+
 
 ############  ADMIN   #####################
 
