@@ -246,7 +246,7 @@ def dismiss_notification(notif_id):
 
 
 
-@app.route('/update_patient_profile', methods=['GET', 'POST'])      ########### AFIA ###################
+@app.route('/update_patient_profile', methods=['GET', 'POST'])     
 def update_patient_profile():       ##############  AFIA ##########
     p_id= session['user_id']
    
