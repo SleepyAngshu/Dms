@@ -53,8 +53,10 @@ def get_db_connection():
 
 
 
-#####################################################################3
-def get_upcoming_week_days(available_days):    ##############  AFIA ##########
+#####################################################################
+
+########## AFIA ##########
+def get_upcoming_week_days(available_days):   
     today = datetime.today()
     result = []
 
@@ -70,7 +72,9 @@ def get_upcoming_week_days(available_days):    ##############  AFIA ##########
             })
     print("result:", result)
     return result
-def get_day(date):            ##############  AFIA ##########
+    
+########## AFIA ##########
+def get_day(date):            
     date_string = str(date)  
     date_object = datetime.strptime(date_string, '%Y-%m-%d')  #convert to datetime
     day_name = date_object.strftime('%A')  #gets the full day name
@@ -200,9 +204,9 @@ def login():
 
 # Inside your existing /patient_dashboard route
 
-
+########## AFIA ##########
 @app.route('/patient_dashboard', endpoint='patient_dashboard')
-def patient_dashboard():          ############## AFIA ###################
+def patient_dashboard():         
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
@@ -224,16 +228,6 @@ def patient_dashboard():          ############## AFIA ###################
     notifications = get_patient_notifications(p_id)  # 🆕 fetch notifications ANGSHU for doctor appointment confirm/cancel/reschedule
     # 🆕 Medication reminder message angshu for reminder
     medication_message = get_time_based_medication_reminder(p_id)
-
-    # return render_template(
-    #     'patient_dashboard.html',
-    #     name=patient['name'],
-    #     p_id=p_id,
-    #     updated_on=patient['updated_on'],
-    #     glucose_data=glucose_data,
-    #     notifications=notifications,
-    #     medication_message=medication_message
-    #     notices=notices)  # Pass to view
     return render_template('patient_dashboard.html', name=patient['name'], p_id=p_id, updated_on=patient['updated_on'], glucose_data=glucose_data, notifications=notifications, medication_message=medication_message, notices=notices)
 
 
@@ -245,9 +239,9 @@ def dismiss_notification(notif_id):
 
 
 
-
+########## AFIA ##########
 @app.route('/update_patient_profile', methods=['GET', 'POST'])     
-def update_patient_profile():       ##############  AFIA ##########
+def update_patient_profile():       
     p_id= session['user_id']
    
     if 'user_id' not in session:
@@ -293,9 +287,9 @@ def update_patient_profile():       ##############  AFIA ##########
             return redirect('/patient_dashboard')
     
     return render_template('update_patient_profile.html', patient=patient) 
-################### AFIA PATIENT ENDS ###########################
 
-################################   DOC REVIEW ########################
+
+################################   DOC  ########################
 
 # @app.route('/verified_doctor_list')
 # def verified_doctor_list():
@@ -318,6 +312,8 @@ def update_patient_profile():       ##############  AFIA ##########
 #     return render_template('verified_doctor_list.html', doctor=doctor, areas=distinct_area_lst)  
 
 ######################################### ADITYA ########################
+
+########## AFIA &  ADITYA ##########
 @app.route('/verified_doctor_list')
 def verified_doctor_list():
     p_id = session['user_id']
@@ -346,9 +342,10 @@ def verified_doctor_list():
     distinct_area_lst = get_distinct_area()
     return render_template('verified_doctor_list.html', doctor=doctor, areas=distinct_area_lst)
 
-###################### ADITYA  DOC REVIEW ENDS ##########################
+
+########## AFIA ##########
 @app.route('/my_prescription')
-def my_prescription():         ##################### NAHIAN ########################
+def my_prescription():        
 
     p_id= session['user_id']
  
@@ -366,9 +363,9 @@ def my_prescription():         ##################### NAHIAN ####################
         prescription['doctor_name'] = doctor['name'] if doctor else 'Unknown Doctor'
     return render_template('my_prescription.html', prescriptions=prescriptions)
     
-
+########## AFIA ##########
 @app.route('/my_appointment')
-def my_appointment():       ################## NAHIAN ###########################
+def my_appointment():       
     p_id= session['user_id']
     
     if 'user_id' not in session:
@@ -385,9 +382,9 @@ def my_appointment():       ################## NAHIAN ##########################
     return render_template('my_appointment.html', appointments=appointments)
 
 
-
+########## AFIA ##########
 @app.route('/make_appointment')
-def make_appointment():        #################### NAHIAN ######################
+def make_appointment():        
     d_id = request.args.get('d_id')
     p_id= session['user_id']
    
@@ -435,11 +432,7 @@ def make_appointment():        #################### NAHIAN #####################
                 available_days.append(day.capitalize()) 
                 available_times[day] = str(time_value).split(',')
 
-    # Generate upcoming dates for available days
-    #print("Available Days:", available_days)
-
     upcoming_days = get_upcoming_week_days(available_days)
-    #print("Upcoming Days:", upcoming_days)
 
     # Attach the correct time from available_times into upcoming_days list
     for day in upcoming_days:
@@ -463,7 +456,7 @@ def make_appointment():        #################### NAHIAN #####################
 
     
 
-###################### ANGSHU and NAHIAN ########################
+###################### AFIA, ANGSHU and NAHIAN ########################
 @app.route('/make_appointment_process', methods=['POST'])
 def make_appointment_process():
     if 'user_id' not in session:
@@ -924,18 +917,12 @@ def update_order():
         
         return redirect(url_for('admin_orders'))
 
-
-
-
-
-
-
 ######################   ADI ENDS  ###########################
 
 
 
-#==================== NAHIAN - doctor =========================
-
+#==================== NAHIAN - doctor ========================= 
+############  NAHIAN #############
 @app.route('/update_doctor_profile', methods=['GET', 'POST'], endpoint='update_doctor_profile')
 def update_doctor_profile_route():
     d_id= session['user_id']
@@ -957,7 +944,7 @@ def update_doctor_profile_route():
     else:
         return 'Doctor not found', 404
 
-
+########## NAHIAN ##########
 @app.route('/doctor_dashboard', endpoint='doctor_dashboard')
 def doctor_dashboard():
     d_id= session['user_id']
@@ -968,6 +955,7 @@ def doctor_dashboard():
     notices = get_doctor_notices(d_id)
     return render_template('doctor_dashboard.html', name=name, d_id=d_id, notices=notices)
 
+########## NAHIAN ##########
 @app.route('/update_doctor_schedule', methods=['GET', 'POST'], endpoint='update_doctor_schedule')
 def update_doctor_schedule_route():
     d_id= session['user_id']
@@ -988,7 +976,7 @@ def update_doctor_schedule_route():
 
 #==========added telemed in schedule but couldnt show already selected schedule in frontend
 
-# Helper function to calculate age from DOB
+# calculate age from DOB
 def calculate_age(dob):
     dob = datetime.strptime(str(dob), '%Y-%m-%d')
     today = datetime.today()
@@ -1023,6 +1011,7 @@ def calculate_age(dob):
 from models.doctor_model import get_pending_appointments, update_appointment_status 
 from models.patient_model import create_notification_for_appointment_action #new line
 
+########## NAHIAN ##########
 @app.route('/doctor_appointments', methods=['GET', 'POST'])
 def doctor_appointments():
     if 'user_id' not in session:
@@ -1053,7 +1042,7 @@ def doctor_appointments():
 
     return render_template('doctor_appointments.html', appointments=appointments)
 
-
+########## NAHIAN ##########
 @app.route('/doctor_prescriptions', methods=['GET', 'POST'])
 def doctor_prescriptions():
     d_id= session['user_id']
@@ -1110,8 +1099,8 @@ def telemedicine_payment():
     schedule = request.args.get('schedule')
     return render_template("telemedicine_payment.html", d_id=d_id, schedule=schedule, amount=amount)
 
-
-def extract_nutrient_percentages(plan):    ############  NAHIAN #############
+ ############  NAHIAN #############
+def extract_nutrient_percentages(plan):   
     nutrients = {
         'Carbohydrates': 0,
         'Proteins': 0,
@@ -1128,13 +1117,14 @@ def extract_nutrient_percentages(plan):    ############  NAHIAN #############
 
 
 
-
-def calculate_age(dob):      ############# AFIA
+########## AFIA ##########
+def calculate_age(dob):     
     today = date.today()
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
+########## AFIA ##########
 @app.route('/diet_suggestion')
-def diet_suggestion():           ######### AFIA 
+def diet_suggestion():          
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
@@ -1164,7 +1154,7 @@ def diet_suggestion():           ######### AFIA
 
     return render_template('diet_suggestion.html', name=patient['name'], age=age, gender=gender, plan=diet_plan, chart_data=chart_data)
 
-#nahian m4
+########## NAHIAN ##########
 @app.route('/admin_send_notice', methods=['GET', 'POST'])
 def admin_send_notice():                       ######### NAHIAN 
     if 'user_id' not in session:
