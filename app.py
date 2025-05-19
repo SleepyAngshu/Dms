@@ -926,9 +926,9 @@ def update_order():
 @app.route('/update_doctor_profile', methods=['GET', 'POST'], endpoint='update_doctor_profile')
 def update_doctor_profile_route():
     d_id= session['user_id']
-    if 'user_id' not in session:  #######Finally activate this
+    if 'user_id' not in session:  
         flash("Session timed out. Please login again.")
-        return redirect(url_for('login'))  # Add your login route
+        return redirect(url_for('login'))  
     
     if request.method == 'POST':
         designation = request.form['designation']
@@ -950,7 +950,7 @@ def doctor_dashboard():
     d_id= session['user_id']
     if 'user_id' not in session:  #######Finally activate this
         flash("Session timed out. Please login again.")
-        return redirect(url_for('login'))  # Add your login route
+        return redirect(url_for('login'))  
     name = get_doctor_name(d_id)
     notices = get_doctor_notices(d_id)
     return render_template('doctor_dashboard.html', name=name, d_id=d_id, notices=notices)
@@ -974,7 +974,7 @@ def update_doctor_schedule_route():
     schedule = get_doctor_schedule(d_id)
     return render_template('doctor_schedule.html', doctor=d_id, schedule=schedule or {}, days=days)
 
-#==========added telemed in schedule but couldnt show already selected schedule in frontend
+
 
 # calculate age from DOB
 def calculate_age(dob):
@@ -982,30 +982,7 @@ def calculate_age(dob):
     today = datetime.today()
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
-# @app.route('/doctor_appointments', methods=['GET', 'POST']) ###removed for angshu
-# def doctor_appointments():
-#     d_id= session['user_id']
-#     if 'user_id' not in session:  #######Finally activate this
-#         flash("Session timed out. Please login again.")
-#         return redirect(url_for('login'))  # Add your login route
-    
-#     if request.method == 'POST':
-#         app_id = request.form.get('app_id')
-#         action = request.form.get('action')
-        
-#         # Update appointment status
-#         update_appointment_status(app_id, d_id, action)
-#         flash('Updated appointment successfully!', 'success') 
-#         return redirect(url_for('doctor_appointments'))
 
-#     # GET - Fetch pending or confirmed + unchecked appointments
-#     appointments = get_pending_appointments(d_id)
-    
-#     # Calculate age for each appointment
-#     for appointment in appointments:
-#         appointment['age'] = calculate_age(appointment['dob'])
-
-#     return render_template('doctor_appointments.html', appointments=appointments)
 
 #updated doctors's appointment
 from models.doctor_model import get_pending_appointments, update_appointment_status 
@@ -1156,7 +1133,7 @@ def diet_suggestion():
 
 ########## NAHIAN ##########
 @app.route('/admin_send_notice', methods=['GET', 'POST'])
-def admin_send_notice():                       ######### NAHIAN 
+def admin_send_notice():                      
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
